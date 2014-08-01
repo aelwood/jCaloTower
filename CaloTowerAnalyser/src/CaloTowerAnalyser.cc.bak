@@ -1,0 +1,634 @@
+// -*- C++ -*-
+//
+// Package:    CaloTowerAnalyser
+// Class:      CaloTowerAnalyser
+// 
+/**\class CaloTowerAnalyser CaloTowerAnalyser.cc jCaloTower/CaloTowerAnalyser/src/CaloTowerAnalyser.cc
+
+ Description: [one line class summary]
+
+ Implementation:
+     [Notes on implementation]
+*/
+//
+// Original Author:  Jad Marrouche
+//         Created:  Fri Jun 21 08:28:06 BST 2013
+// $Id$
+//
+//
+
+
+// system include files
+#include <memory>
+
+// user include files
+#include "FWCore/Framework/interface/Frameworkfwd.h"
+#include "FWCore/Framework/interface/EDAnalyzer.h"
+
+#include "FWCore/Framework/interface/Event.h"
+#include "FWCore/Framework/interface/MakerMacros.h"
+
+#include "FWCore/ParameterSet/interface/ParameterSet.h"
+
+#include "FWCore/MessageLogger/interface/MessageLogger.h"
+
+#include "DataFormats/CaloTowers/interface/CaloTower.h"
+#include "DataFormats/CaloTowers/interface/CaloTowerFwd.h"
+
+#include "SimDataFormats/SLHC/interface/L1CaloTower.h"
+#include "SimDataFormats/SLHC/interface/L1CaloTowerFwd.h"
+
+#include "SLHCUpgradeSimulations/L1CaloTrigger/interface/TriggerTowerGeometry.h"
+
+#include "FWCore/ServiceRegistry/interface/Service.h"
+#include "CommonTools/UtilAlgos/interface/TFileService.h"
+#include "TH1.h"
+#include "TH2.h"
+#include "TROOT.h"
+#include "TCanvas.h"
+
+
+//
+// class declaration
+//
+
+class CaloTowerAnalyser : public edm::EDAnalyzer {
+   public:
+      explicit CaloTowerAnalyser(const edm::ParameterSet&);
+      ~CaloTowerAnalyser();
+
+      static void fillDescriptions(edm::ConfigurationDescriptions& descriptions);
+
+
+   private:
+      virtual void beginJob() ;
+      virtual void analyze(const edm::Event&, const edm::EventSetup&);
+      virtual void endJob() ;
+
+      //virtual void beginRun(edm::Run const&, edm::EventSetup const&);
+      //virtual void endRun(edm::Run const&, edm::EventSetup const&);
+      //virtual void beginLuminosityBlock(edm::LuminosityBlock const&, edm::EventSetup const&);
+      //virtual void endLuminosityBlock(edm::LuminosityBlock const&, edm::EventSetup const&);
+
+      // ----------member data ---------------------------
+
+
+  TH1D* iEtaDistLvl1;
+  TH1D* iEtaDistOffline;
+  TH1D* iEtaDistOfflineCut;
+  TH1D* iEtaDistOfflineTruncCut;
+  TH1D* iEtaDistOfflineTruncCut2;
+  
+  TH1D* iETweightedEtaDistLvl1;
+  TH1D* iETweightedEtaDistOffline;
+  TH1D* iETweightedEtaDistOfflineCut;
+  TH1D* iETweightedEtaDistOfflineTruncCut;
+  TH1D* iETweightedEtaDistOfflineTruncCut2;
+  
+  TH1D * iEta28ETE;
+  TH1D * iEta28ETH;
+  TH1D * iEta28ETEL1;
+  TH1D * iEta28ETHL1;
+
+  TH1D * iEta28ETE_EVEN;
+  TH1D * iEta28ETH_EVEN;
+  TH1D * iEta28ETEL1_EVEN;
+  TH1D * iEta28ETHL1_EVEN;
+
+  TH1D * iEta28ETE_ODD;
+  TH1D * iEta28ETH_ODD;
+  TH1D * iEta28ETEL1_ODD;
+  TH1D * iEta28ETHL1_ODD;
+
+  TH2D * etaphimap;
+  TH2D * etaphimapL1;
+
+  TH2D * etaphimapwH;
+  TH2D * etaphimapwHL1;
+
+/*
+  TH1D * etadist;
+
+  TH1D * ietadist;
+
+  TH1D * etadistwem;
+  TH1D * etadistwhad;
+
+  TH1D * ietadistwem;
+  TH1D * ietadistwhad;
+  TH1D * ietadistwEt;
+
+
+  TH1D * etadistwouter;
+  TH1D * ptdistem;
+  TH1D * ptdisthad;
+  TH1D * ptdistouter;
+  TH2D * ETcorr;
+
+  TH1D * etadistL1;
+  TH1D * ietadistL1;
+
+  TH1D * etadistL1wE;
+  TH1D * etadistL1wH;
+
+  TH1D * ietadistL1wE;
+  TH1D * ietadistL1wH;
+  TH1D * ietadistL1wEt;
+
+  TH2D * ETcorr_00_05;
+  TH2D * ETcorr_05_10;
+  TH2D * ETcorr_10_15;
+  TH2D * ETcorr_15_20;
+  TH2D * ETcorr_20_25;
+  TH2D * ETcorr_25_30;
+
+  TH1D * resE_00_05;
+  TH1D * resE_05_10;
+  TH1D * resE_10_15;
+  TH1D * resE_15_20;
+  TH1D * resE_20_25;
+  TH1D * resE_25_30;
+
+  TH1D * resH_00_05;
+  TH1D * resH_05_10;
+  TH1D * resH_10_15;
+  TH1D * resH_15_20;
+  TH1D * resH_20_25;
+  TH1D * resH_25_30;
+
+  TH2D * etaphimap;
+  TH2D * etaphimapL1;
+*/
+};
+
+//
+// constants, enums and typedefs
+//
+
+//
+// static data member definitions
+//
+
+//
+// constructors and destructor
+//
+CaloTowerAnalyser::CaloTowerAnalyser(const edm::ParameterSet& iConfig)
+
+{
+
+
+  edm::Service<TFileService> fs;
+  
+  iEtaDistLvl1 = fs->make<TH1D>("iEtaDistLvl1" , ";i#eta;" , 101 , -50.5 , 50.5 );
+  iEtaDistOffline = fs->make<TH1D>("iEtaDistOffline" , ";i#eta;" , 101 , -50.5 , 50.5 );
+  iEtaDistOfflineCut = fs->make<TH1D>("iEtaDistOfflineCut" , ";i#eta;" , 101 , -50.5 , 50.5 );
+  iEtaDistOfflineTruncCut = fs->make<TH1D>("iEtaDistOfflineTruncCut" , ";i#eta;" , 101 , -50.5 , 50.5 );
+  iEtaDistOfflineTruncCut2 = fs->make<TH1D>("iEtaDistOfflineTruncCut2" , ";i#eta;" , 101 , -50.5 , 50.5 );
+  
+  iETweightedEtaDistLvl1 = fs->make<TH1D>("iETweightedEtaDistLvl1" , ";i#eta;" , 101 , -50.5 , 50.5 );
+  iETweightedEtaDistOffline = fs->make<TH1D>("iETweightedEtaDistOffline" , ";i#eta;" , 101 , -50.5 , 50.5 );
+  iETweightedEtaDistOfflineCut = fs->make<TH1D>("iETweightedEtaDistOfflineCut" , ";i#eta;" , 101 , -50.5 , 50.5 );
+  iETweightedEtaDistOfflineTruncCut = fs->make<TH1D>("iETweightedEtaDistOfflineTruncCut" , ";i#eta;" , 101 , -50.5 , 50.5 );
+  iETweightedEtaDistOfflineTruncCut2 = fs->make<TH1D>("iETweightedEtaDistOfflineTruncCut2" , ";i#eta;" , 101 , -50.5 , 50.5 );
+  
+  iEta28ETE = fs->make<TH1D>("iEta28ETE",";E_{T};",100, -0.5, 99.5);
+  iEta28ETH = fs->make<TH1D>("iEta28ETH",";E_{T};",100, -0.5, 99.5);
+  iEta28ETEL1 = fs->make<TH1D>("iEta28ETEL1",";E_{T};",100, -0.5, 99.5);
+  iEta28ETHL1 = fs->make<TH1D>("iEta28ETHL1",";E_{T};",100, -0.5, 99.5);
+
+  iEta28ETE_EVEN = fs->make<TH1D>("iEta28ETE_EVEN",";E_{T};",100, -0.5, 99.5);
+  iEta28ETH_EVEN = fs->make<TH1D>("iEta28ETH_EVEN",";E_{T};",100, -0.5, 99.5);
+  iEta28ETEL1_EVEN = fs->make<TH1D>("iEta28ETEL1_EVEN",";E_{T};",100, -0.5, 99.5);
+  iEta28ETHL1_EVEN = fs->make<TH1D>("iEta28ETHL1_EVEN",";E_{T};",100, -0.5, 99.5);
+
+  iEta28ETE_ODD = fs->make<TH1D>("iEta28ETE_ODD",";E_{T};",100, -0.5, 99.5);
+  iEta28ETH_ODD = fs->make<TH1D>("iEta28ETH_ODD",";E_{T};",100, -0.5, 99.5);
+  iEta28ETEL1_ODD = fs->make<TH1D>("iEta28ETEL1_ODD",";E_{T};",100, -0.5, 99.5);
+  iEta28ETHL1_ODD = fs->make<TH1D>("iEta28ETHL1_ODD",";E_{T};",100, -0.5, 99.5);
+
+  etaphimap = fs->make<TH2D>("etaphimap",";eta;phi",200, -100.5, 99.5, 200, -100.5, 99.5);
+  etaphimapL1 = fs->make<TH2D>("etaphimapL1",";eta;phi",200, -100.5, 99.5, 200, -100.5, 99.5);
+  etaphimapwH = fs->make<TH2D>("etaphimapwH",";eta;phi",200, -100.5, 99.5, 200, -100.5, 99.5);
+  etaphimapwHL1 = fs->make<TH2D>("etaphimapwHL1",";eta;phi",200, -100.5, 99.5, 200, -100.5, 99.5);
+
+/*
+   //now do what ever initialization is needed
+
+  //set up tfile for histograms
+  edm::Service<TFileService> fs;
+  etadist = fs->make<TH1D>("etadist" , ";#eta;" , 1000 , -5.005 , 4.995 );
+  ietadist = fs->make<TH1D>("ietadist" , ";i#eta;" , 101 , -50.5 , 50.5 );
+
+
+  etadistwem = fs->make<TH1D>("etadistwem" , ";#eta;" , 1000 , -5.005 , 4.995 );
+  etadistwhad = fs->make<TH1D>("etadistwhad" , ";#eta;" , 1000 , -5.005 , 4.995 );
+
+  ietadistwem = fs->make<TH1D>("ietadistwem" , ";#eta;" , 101 , -50.5 , 50.5 );
+  ietadistwhad = fs->make<TH1D>("ietadistwhad" , ";#eta;" , 101 , -50.5 , 50.5 );
+  ietadistwEt = fs->make<TH1D>("ietadistwEt" , ";#eta;" , 101 , -50.5 , 50.5 );
+
+
+  etadistwouter = fs->make<TH1D>("etadistwouter" , ";#eta;" , 1000 , -5.005 , 4.995 );
+  ptdistem = fs->make<TH1D>("ptdistem",";#p_{T};",1000,-0.5,999.5);
+  ptdisthad = fs->make<TH1D>("ptdisthad",";#p_{T};",1000,-0.5,999.5);
+  ptdistouter = fs->make<TH1D>("ptdistouter",";#p_{T};",1000,-0.5,999.5);
+  ETcorr = fs->make<TH2D>("ETcorr",";Offline;L1",1000, -5, 9995, 1000, -5, 9995);
+
+  etadistL1 = fs->make<TH1D>("etadistL1" , ";#eta;" , 1000 , -5.005 , 4.995 );
+  ietadistL1 = fs->make<TH1D>("ietadistL1" , ";i#eta;" , 101 , -50.5 , 50.5 );
+
+  etadistL1wE = fs->make<TH1D>("etadistL1wE" , ";#eta;" , 1000 , -5.005 , 4.995 );
+  etadistL1wH = fs->make<TH1D>("etadistL1wH" , ";#eta;" , 1000 , -5.005 , 4.995 );
+
+  ietadistL1wE = fs->make<TH1D>("ietadistL1wE" , ";#eta;" , 101 , -50.5 , 50.5 );
+  ietadistL1wH = fs->make<TH1D>("ietadistL1wH" , ";#eta;" , 101 , -50.5 , 50.5 );
+  ietadistL1wEt = fs->make<TH1D>("ietadistL1wEt" , ";#eta;" , 101 , -50.5 , 50.5 );
+
+
+  ETcorr_00_05 = fs->make<TH2D>("ETcorr_00_05",";Offline;L1",1000, -5, 9995, 1000, -5, 9995);
+  ETcorr_05_10 = fs->make<TH2D>("ETcorr_05_10",";Offline;L1",1000, -5, 9995, 1000, -5, 9995);
+  ETcorr_10_15 = fs->make<TH2D>("ETcorr_10_15",";Offline;L1",1000, -5, 9995, 1000, -5, 9995);
+  ETcorr_15_20 = fs->make<TH2D>("ETcorr_15_20",";Offline;L1",1000, -5, 9995, 1000, -5, 9995);
+  ETcorr_20_25 = fs->make<TH2D>("ETcorr_20_25",";Offline;L1",1000, -5, 9995, 1000, -5, 9995);
+  ETcorr_25_30 = fs->make<TH2D>("ETcorr_25_30",";Offline;L1",1000, -5, 9995, 1000, -5, 9995);
+
+  resE_00_05 = fs->make<TH1D>("resE_00_05",";L1-off/off;",100, -5.05, 4.95);
+  resE_05_10 = fs->make<TH1D>("resE_05_10",";L1-off/off;",100, -5.05, 4.95);
+  resE_10_15 = fs->make<TH1D>("resE_10_15",";L1-off/off;",100, -5.05, 4.95);
+  resE_15_20 = fs->make<TH1D>("resE_15_20",";L1-off/off;",100, -5.05, 4.95);
+  resE_20_25 = fs->make<TH1D>("resE_20_25",";L1-off/off;",100, -5.05, 4.95);
+  resE_25_30 = fs->make<TH1D>("resE_25_30",";L1-off/off;",100, -5.05, 4.95);
+
+  resH_00_05 = fs->make<TH1D>("resH_00_05",";L1-off/off;",100, -5.05, 4.95);
+  resH_05_10 = fs->make<TH1D>("resH_05_10",";L1-off/off;",100, -5.05, 4.95);
+  resH_10_15 = fs->make<TH1D>("resH_10_15",";L1-off/off;",100, -5.05, 4.95);
+  resH_15_20 = fs->make<TH1D>("resH_15_20",";L1-off/off;",100, -5.05, 4.95);
+  resH_20_25 = fs->make<TH1D>("resH_20_25",";L1-off/off;",100, -5.05, 4.95);
+  resH_25_30 = fs->make<TH1D>("resH_25_30",";L1-off/off;",100, -5.05, 4.95);
+
+  etaphimap = fs->make<TH2D>("etaphimap",";eta;phi",200, -100.5, 99.5, 200, -100.5, 99.5);
+  etaphimapL1 = fs->make<TH2D>("etaphimapL1",";eta;phi",200, -100.5, 99.5, 200, -100.5, 99.5);
+*/
+}
+
+
+CaloTowerAnalyser::~CaloTowerAnalyser()
+{
+ 
+   // do anything here that needs to be done at desctruction time
+   // (e.g. close files, deallocate resources etc.)
+
+}
+
+
+
+//double truncate( const double& aDouble )
+//{
+//	return int( aDouble );
+//	return aDouble;
+//}
+
+
+
+//
+// member functions
+//
+
+// ------------ method called for each event  ------------
+void
+CaloTowerAnalyser::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
+{
+   using namespace edm;
+
+   Handle<l1slhc::L1CaloTowerCollection> triggertowers;
+   iEvent.getByLabel("L1CaloTowerProducer", triggertowers);
+   LogInfo("Demo") << "number of L1 trigger towers: " << triggertowers->size();
+
+   Handle<l1slhc::L1CaloTowerCollection> offlinetriggertowers;
+   iEvent.getByLabel("L1OfflineCaloTowerProducer", offlinetriggertowers);
+   LogInfo("Demo") << "number of L1 offline trigger towers: " << offlinetriggertowers->size();
+
+   Handle<CaloTowerCollection> calotowers;
+   iEvent.getByLabel("towerMaker", calotowers); 
+   LogInfo("Demo") << "number of calotowers "<< calotowers->size();
+
+   TriggerTowerGeometry geometry;
+
+   for(l1slhc::L1CaloTowerCollection::const_iterator j=triggertowers->begin(); j!=triggertowers->end(); j++) {
+     if ( abs((*j).iEta()) > 28 )
+     {
+	continue;
+     }
+
+     etaphimapL1->Fill((*j).iEta(), (*j).iPhi());
+     etaphimapwHL1->Fill((*j).iEta(), (*j).iPhi(), (*j).H());
+
+     if ( abs((*j).iEta()) == 28 ) {
+       iEta28ETEL1->Fill((*j).E());
+       iEta28ETHL1->Fill((*j).H());
+
+	if( (*j).iPhi() % 2 )
+	{
+		iEta28ETEL1_EVEN->Fill((*j).E());
+		iEta28ETHL1_EVEN->Fill((*j).H());
+	}else{
+		iEta28ETEL1_ODD->Fill((*j).E());
+		iEta28ETHL1_ODD->Fill((*j).H());
+	}
+
+     }
+
+     iEtaDistLvl1->Fill( (*j).iEta() );
+     iETweightedEtaDistLvl1->Fill( (*j).iEta() , (*j).E()+(*j).H() );
+   }
+
+
+   for (CaloTowerCollection::const_iterator j=calotowers->begin(); j!=calotowers->end(); j++) {
+
+	if ( (*j).ietaAbs() > 28 )
+	{
+		continue;
+	}
+
+	etaphimap->Fill((*j).ieta(), (*j).iphi());
+	etaphimapwH->Fill((*j).ieta(), (*j).iphi(), (*j).hadEt());
+
+	if ( (*j).ietaAbs() == 28 ) {
+	  iEta28ETE->Fill((*j).emEt());
+	  iEta28ETH->Fill((*j).hadEt());
+
+		if( (*j).iphi() % 2 )
+		{
+			iEta28ETE_EVEN->Fill((*j).emEt());
+			iEta28ETH_EVEN->Fill((*j).hadEt());
+		}else{
+			iEta28ETE_ODD->Fill((*j).emEt());
+			iEta28ETH_ODD->Fill((*j).hadEt());
+		}
+
+	}
+
+	iEtaDistOffline->Fill((*j).ieta());
+	iETweightedEtaDistOffline->Fill((*j).ieta() , (*j).et() );
+
+	if( (*j).et() > 0 )
+	{
+		iEtaDistOfflineCut->Fill((*j).ieta());
+		iETweightedEtaDistOfflineCut->Fill((*j).ieta() , (*j).et() );
+	}
+
+	if( int((*j).et()) > 0 )
+	{
+		iEtaDistOfflineTruncCut->Fill((*j).ieta());
+		iETweightedEtaDistOfflineTruncCut->Fill((*j).ieta() , (*j).et() );
+	}
+
+	if( int(0.5*(*j).et()) > 0 )
+	{
+		iEtaDistOfflineTruncCut2->Fill((*j).ieta());
+		iETweightedEtaDistOfflineTruncCut2->Fill((*j).ieta() , (*j).et() );
+	}
+
+   }
+
+
+/*
+   //std::cout << "test: " << geometry.eta(10) << std::endl;
+
+   double totalET=0.0, L1totalET=0.0;
+
+   double totalET_00_05=0.0, L1totalET_00_05=0.0;
+   double totalET_05_10=0.0, L1totalET_05_10=0.0;
+   double totalET_10_15=0.0, L1totalET_10_15=0.0;
+   double totalET_15_20=0.0, L1totalET_15_20=0.0;
+   double totalET_20_25=0.0, L1totalET_20_25=0.0;
+   double totalET_25_30=0.0, L1totalET_25_30=0.0;
+
+   double totalETE_00_05=0.0, L1totalETE_00_05=0.0;
+   double totalETE_05_10=0.0, L1totalETE_05_10=0.0;
+   double totalETE_10_15=0.0, L1totalETE_10_15=0.0;
+   double totalETE_15_20=0.0, L1totalETE_15_20=0.0;
+   double totalETE_20_25=0.0, L1totalETE_20_25=0.0;
+   double totalETE_25_30=0.0, L1totalETE_25_30=0.0;
+
+   double totalETH_00_05=0.0, L1totalETH_00_05=0.0;
+   double totalETH_05_10=0.0, L1totalETH_05_10=0.0;
+   double totalETH_10_15=0.0, L1totalETH_10_15=0.0;
+   double totalETH_15_20=0.0, L1totalETH_15_20=0.0;
+   double totalETH_20_25=0.0, L1totalETH_20_25=0.0;
+   double totalETH_25_30=0.0, L1totalETH_25_30=0.0;
+
+   for(l1slhc::L1CaloTowerCollection::const_iterator j=triggertowers->begin(); j!=triggertowers->end(); j++) {
+
+     etaphimapL1->Fill((*j).iEta(), (*j).iPhi());
+     
+     double L1eta = fabs(geometry.eta((*j).iEta()));
+
+     if(L1eta >= 0.0 && L1eta < 0.5 ) {
+       L1totalET += ((*j).E() + (*j).H());
+       L1totalET_00_05 += ((*j).E() + (*j).H());
+       L1totalETE_00_05 += (*j).E();
+       L1totalETH_00_05 += (*j).H();
+     } else if (L1eta >= 0.5 && L1eta < 1.0 ) {
+       L1totalET += ((*j).E() + (*j).H());
+       L1totalET_05_10 += ((*j).E() + (*j).H());
+       L1totalETE_05_10 += (*j).E();
+       L1totalETH_05_10 += (*j).H();
+     } else if (L1eta >= 1.0 && L1eta < 1.5 ) {
+       L1totalET += ((*j).E() + (*j).H());
+       L1totalET_10_15 += ((*j).E() + (*j).H());
+       L1totalETE_10_15 += (*j).E();
+       L1totalETH_10_15 += (*j).H();
+     } else if (L1eta >= 1.5 && L1eta < 2.0 ) {
+       L1totalET += ((*j).E() + (*j).H());
+       L1totalET_15_20 += ((*j).E() + (*j).H());
+       L1totalETE_15_20 += (*j).E();
+       L1totalETH_15_20 += (*j).H();
+     } else if (L1eta >= 2.0 && L1eta < 2.5 ) {
+       L1totalET += ((*j).E() + (*j).H());
+       L1totalET_20_25 += ((*j).E() + (*j).H());
+       L1totalETE_20_25 += (*j).E();
+       L1totalETH_20_25 += (*j).H();
+     } else if (L1eta >= 2.5 && L1eta < 3.0 ) {
+       L1totalET += ((*j).E() + (*j).H());
+       L1totalET_25_30 += ((*j).E() + (*j).H());
+       L1totalETE_25_30 += (*j).E();
+       L1totalETH_25_30 += (*j).H();
+     }
+     //std::cout <<  << std::endl;
+
+   //  if( (*j).E() + (*j).H() > 0 )
+   //  {
+	     etadistL1->Fill(geometry.eta((*j).iEta()));
+	     ietadistL1->Fill((*j).iEta());
+  //   }
+
+     etadistL1wE->Fill(geometry.eta((*j).iEta()), (*j).E());
+     etadistL1wH->Fill(geometry.eta((*j).iEta()), (*j).H());
+
+     ietadistL1wE->Fill((*j).iEta(), (*j).E());
+     ietadistL1wH->Fill((*j).iEta(), (*j).H());
+     ietadistL1wEt->Fill((*j).iEta(), (*j).E()+(*j).H());
+
+   }
+
+
+
+
+
+   for (CaloTowerCollection::const_iterator j=calotowers->begin(); j!=calotowers->end(); j++) {
+
+     //if((*j).emEt() >= 0.5 && (*j).hadEt() >= 0.5) {
+       etaphimap->Fill((*j).ieta(), (*j).iphi());
+     //}
+
+     if ( (*j).ietaAbs() > 28 )
+     {
+	continue;
+     }
+
+//     double eta = fabs((*j).eta());
+     double eta = fabs(geometry.eta((*j).eta()));
+    
+     if(eta >= 0.0 && eta < 0.5 ) {
+       totalET += truncate((*j).et());
+       totalET_00_05 += truncate((*j).et());
+       totalETE_00_05 += truncate((*j).emEt());
+       totalETH_00_05 += truncate((*j).hadEt());
+     } else if (eta >= 0.5 && eta < 1.0 ) {
+       totalET += truncate((*j).et());
+       totalET_05_10 += truncate((*j).et());
+       totalETE_05_10 += truncate((*j).emEt());
+       totalETH_05_10 += truncate((*j).hadEt());
+     } else if (eta >= 1.0 && eta < 1.5 ) {
+       totalET += truncate((*j).et());
+       totalET_10_15 += truncate((*j).et());
+       totalETE_10_15 += truncate((*j).emEt());
+       totalETH_10_15 += truncate((*j).hadEt());
+     } else if (eta >= 1.5 && eta < 2.0 ) {
+       totalET += truncate((*j).et());
+       totalET_15_20 += truncate((*j).et());
+       totalETE_15_20 += truncate((*j).emEt());
+       totalETH_15_20 += truncate((*j).hadEt());
+     } else if (eta >= 2.0 && eta < 2.5 ) {
+       totalET += truncate((*j).et());
+       totalET_20_25 += truncate((*j).et());
+       totalETE_20_25 += truncate((*j).emEt());
+       totalETH_20_25 += truncate((*j).hadEt());
+     } else if (eta >= 2.5 && eta < 3.0 ) {
+       totalET += truncate((*j).et());
+       totalET_25_30 += truncate((*j).et());
+       totalETE_25_30 += truncate((*j).emEt());
+       totalETH_25_30 += truncate((*j).hadEt());
+     }
+
+
+     //std::cout << (*j) << std::endl;
+
+  //   if( truncate(0.5*(*j).et()) > 0 )
+//     {
+	     etadist->Fill((*j).eta());
+	     ietadist->Fill((*j).ieta());
+//	}     
+
+     etadistwem->Fill((*j).eta(), truncate((*j).emEt()));
+     etadistwhad->Fill((*j).eta(), truncate((*j).hadEt()));
+
+     etadistwouter->Fill((*j).eta(), truncate((*j).outerEt()));
+
+     ietadistwem->Fill((*j).ieta(), truncate((*j).emEt()));
+     ietadistwhad->Fill((*j).ieta(), truncate((*j).hadEt()));
+     ietadistwEt->Fill((*j).ieta(), truncate((*j).et()));
+
+
+     ptdistem->Fill(truncate((*j).emEt()));
+     ptdisthad->Fill(truncate((*j).hadEt()));
+     ptdistouter->Fill(truncate((*j).outerEt()));
+     
+
+   }
+
+   //std::cout << "totalET " << totalET << ", L1totalET: " << L1totalET << std::endl; 
+   ETcorr->Fill(totalET, L1totalET);
+   ETcorr_00_05->Fill(totalET_00_05, L1totalET_00_05);   
+   ETcorr_05_10->Fill(totalET_05_10, L1totalET_05_10);   
+   ETcorr_10_15->Fill(totalET_10_15, L1totalET_10_15);   
+   ETcorr_15_20->Fill(totalET_15_20, L1totalET_15_20);   
+   ETcorr_20_25->Fill(totalET_20_25, L1totalET_20_25);   
+   ETcorr_25_30->Fill(totalET_25_30, L1totalET_25_30);   
+
+
+   resE_00_05->Fill((L1totalETE_00_05 - totalETE_00_05) / totalETE_00_05);
+   resE_05_10->Fill((L1totalETE_05_10 - totalETE_05_10) / totalETE_05_10);
+   resE_10_15->Fill((L1totalETE_10_15 - totalETE_10_15) / totalETE_10_15);
+   resE_15_20->Fill((L1totalETE_15_20 - totalETE_15_20) / totalETE_15_20);
+   resE_20_25->Fill((L1totalETE_20_25 - totalETE_20_25) / totalETE_20_25);
+   resE_25_30->Fill((L1totalETE_25_30 - totalETE_25_30) / totalETE_25_30);
+
+   resH_00_05->Fill((L1totalETH_00_05 - totalETH_00_05) / totalETH_00_05);
+   resH_05_10->Fill((L1totalETH_05_10 - totalETH_05_10) / totalETH_05_10);
+   resH_10_15->Fill((L1totalETH_10_15 - totalETH_10_15) / totalETH_10_15);
+   resH_15_20->Fill((L1totalETH_15_20 - totalETH_15_20) / totalETH_15_20);
+   resH_20_25->Fill((L1totalETH_20_25 - totalETH_20_25) / totalETH_20_25);
+   resH_25_30->Fill((L1totalETH_25_30 - totalETH_25_30) / totalETH_25_30);
+*/
+
+}
+
+
+// ------------ method called once each job just before starting event loop  ------------
+void 
+CaloTowerAnalyser::beginJob()
+{
+}
+
+// ------------ method called once each job just after ending the event loop  ------------
+void 
+CaloTowerAnalyser::endJob() 
+{
+}
+
+// ------------ method called when starting to processes a run  ------------
+/*
+void 
+CaloTowerAnalyser::beginRun(edm::Run const&, edm::EventSetup const&)
+{
+}
+*/
+
+// ------------ method called when ending the processing of a run  ------------
+/*
+void 
+CaloTowerAnalyser::endRun(edm::Run const&, edm::EventSetup const&)
+{
+}
+*/
+
+// ------------ method called when starting to processes a luminosity block  ------------
+/*
+void 
+CaloTowerAnalyser::beginLuminosityBlock(edm::LuminosityBlock const&, edm::EventSetup const&)
+{
+}
+*/
+
+// ------------ method called when ending the processing of a luminosity block  ------------
+/*
+void 
+CaloTowerAnalyser::endLuminosityBlock(edm::LuminosityBlock const&, edm::EventSetup const&)
+{
+}
+*/
+
+// ------------ method fills 'descriptions' with the allowed parameters for the module  ------------
+void
+CaloTowerAnalyser::fillDescriptions(edm::ConfigurationDescriptions& descriptions) {
+  //The following says we do not know what parameters are allowed so do no validation
+  // Please change this to state exactly what you do use, even if it is no parameters
+  edm::ParameterSetDescription desc;
+  desc.setUnknown();
+  descriptions.addDefault(desc);
+}
+
+//define this as a plug-in
+DEFINE_FWK_MODULE(CaloTowerAnalyser);

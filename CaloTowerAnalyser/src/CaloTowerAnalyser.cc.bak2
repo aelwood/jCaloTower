@@ -1,0 +1,1292 @@
+// -*- C++ -*-
+//
+// Package:    CaloTowerAnalyser
+// Class:      CaloTowerAnalyser
+// 
+/**\class CaloTowerAnalyser CaloTowerAnalyser.cc jCaloTower/CaloTowerAnalyser/src/CaloTowerAnalyser.cc
+
+ Description: [one line class summary]
+
+ Implementation:
+     [Notes on implementation]
+*/
+//
+// Original Author:  Jad Marrouche
+//         Created:  Fri Jun 21 08:28:06 BST 2013
+// $Id$
+//
+//
+
+
+// system include files
+#include <memory>
+
+// user include files
+#include "FWCore/Framework/interface/Frameworkfwd.h"
+#include "FWCore/Framework/interface/EDAnalyzer.h"
+
+#include "FWCore/Framework/interface/Event.h"
+#include "FWCore/Framework/interface/MakerMacros.h"
+
+#include "FWCore/ParameterSet/interface/ParameterSet.h"
+
+#include "FWCore/MessageLogger/interface/MessageLogger.h"
+
+#include "DataFormats/JetReco/interface/GenJetCollection.h"
+
+#include "DataFormats/CaloTowers/interface/CaloTower.h"
+#include "DataFormats/CaloTowers/interface/CaloTowerFwd.h"
+
+#include "DataFormats/HepMCCandidate/interface/GenParticle.h"
+
+#include "DataFormats/L1GlobalCaloTrigger/interface/L1GctCollections.h"
+
+#include "SimDataFormats/PileupSummaryInfo/interface/PileupSummaryInfo.h"
+
+#include "SimDataFormats/SLHC/interface/L1CaloTower.h"
+#include "SimDataFormats/SLHC/interface/L1CaloTowerFwd.h"
+
+#include "SLHCUpgradeSimulations/L1CaloTrigger/interface/TriggerTowerGeometry_new.h"
+
+#include "jCaloTower/CaloTowerAnalyser/interface/jad_jet_class.hh"
+#include "jCaloTower/CaloTowerAnalyser/interface/matching_algo.hh"
+
+#include "fastjet/GhostedAreaSpec.hh"
+#include "fastjet/ClusterSequenceArea.hh"
+#include "fastjet/tools/Filter.hh"
+#include "fastjet/tools/Pruner.hh"
+#include "fastjet/GhostedAreaSpec.hh"
+#include <fastjet/PseudoJet.hh>
+
+#include "FWCore/ServiceRegistry/interface/Service.h"
+#include "CommonTools/UtilAlgos/interface/TFileService.h"
+#include "TH1.h"
+#include "TH2.h"
+#include "TROOT.h"
+#include "TCanvas.h"
+
+
+//
+// class declaration
+//
+
+class CaloTowerAnalyser : public edm::EDAnalyzer {
+public:
+  explicit CaloTowerAnalyser(const edm::ParameterSet&);
+  ~CaloTowerAnalyser();
+  
+  static void fillDescriptions(edm::ConfigurationDescriptions& descriptions);
+  
+  void getJets(std::vector < fastjet::PseudoJet > &constits,std::vector < fastjet::PseudoJet > &jets);
+  std::vector<jJet> getL1Jets(const std::vector< std::vector<int> > & input, int jetsize, int vetowindowsize, int seedthresh1, int seedthresh2);
+  void compareJetCollections(const std::vector<jJet> & col1, const std::vector<jJet> & col2, std::string folderName);
+  void printOneEvent(const edm::Handle<l1slhc::L1CaloTowerCollection> triggertowers, const std::vector<jJet> & L1jets, const std::vector<fastjet::PseudoJet> & ak4ttjets, const reco::GenJetCollection * ak4genjets, std::vector<fastjet::PseudoJet> & ak4genjetsp);
+  std::vector<int> closestJetDistance(const std::vector<jJet> & jJets);
+  
+private:
+  virtual void beginJob() ;
+  virtual void analyze(const edm::Event&, const edm::EventSetup&);
+  virtual void endJob() ;
+
+  //void Make2DMap(const edm::Handle<l1slhc::L1CaloTowerCollection> triggertowers, const edm::Handle<CaloTowerCollection> calotowers, const int eventNumber);
+
+  //virtual void beginRun(edm::Run const&, edm::EventSetup const&);
+  //virtual void endRun(edm::Run const&, edm::EventSetup const&);
+  //virtual void beginLuminosityBlock(edm::LuminosityBlock const&, edm::EventSetup const&);
+  //virtual void endLuminosityBlock(edm::LuminosityBlock const&, edm::EventSetup const&);
+  
+  // ----------member data ---------------------------
+  int mEventNumber;
+  std::vector<pair_info> pairs;
+
+  TH1D * median_energy_per_event;
+
+
+
+  //TH1D * ak4tt_pt;
+  TH1D * ak4tt_pt_match_L1;
+  TH1D * jet1_ak4tt_pt_match_L1;
+  TH1D * jet2_ak4tt_pt_match_L1;
+  TH1D * jet3_ak4tt_pt_match_L1;
+  TH1D * jet4_ak4tt_pt_match_L1;
+  TH1D * genjet_pt;
+  //TH1D * genjet_pt_nomunu;
+  TH1D * genjet_pt_nomunu_far;
+  //TH1D * jet1_genjet_pt_nomunu;
+  //TH1D * jet2_genjet_pt_nomunu;
+  //TH1D * jet3_genjet_pt_nomunu;
+  //TH1D * jet4_genjet_pt_nomunu;
+  TH1D * genjet_pt_nomunu_match_L1;
+  TH1D * genjet_pt_nomunu_far_match_L1;
+  TH1D * jet1_genjet_pt_nomunu_match_L1;
+  TH1D * jet2_genjet_pt_nomunu_match_L1;
+  TH1D * jet3_genjet_pt_nomunu_match_L1;
+  TH1D * jet4_genjet_pt_nomunu_match_L1;
+  TH1D * genjet_pt_nomunu_match_L1donut;
+  TH1D * genjet_pt_nomunu_match_ak4tt;
+  //TH1D * jet1_genjet_pt_nomunu_match_ak4tt;
+  //TH1D * jet2_genjet_pt_nomunu_match_ak4tt;
+  //TH1D * jet3_genjet_pt_nomunu_match_ak4tt;
+  T//H1D * jet4_genjet_pt_nomunu_match_ak4tt;
+  //TH1D * genjet_eta_nomunu;
+  TH1D * genjet_eta_nomunu_match_L1;
+  TH1D * genjet_eta_nomunu_match_ak4tt;
+
+  TH1D * towermax_matchedtoak4tt;
+  TH1D * towermax_unmatched_genjetpt;
+  TH1D * towermax_unmatched_ak4tt;
+
+  TH2D * L1_vs_ak4tt;
+  TH2D * L1_vs_genjetpt;
+  TH2D * L1donut_vs_genjetpt;
+  TH2D * ak4tt_vs_genjetpt;
+
+  TH1D * smallest_dist_localmax;
+  TH1D * smallest_dist_ak4jets;
+  TH2D * ntowers_vs_npv;
+
+  TH2D * r4_vs_npv_eta1_pt3050;
+  TH2D * r4_vs_npv_eta2_pt3050;
+  TH2D * r4_vs_npv_eta3_pt3050;
+  TH2D * r4_vs_npv_eta1_pt80100;
+  TH2D * r4_vs_npv_eta2_pt80100;
+  TH2D * r4_vs_npv_eta3_pt80100;
+
+  TH2D * deltaGenL1_pT3050_eta1_v1;
+  TH2D * deltaGenL1_v2;
+  TH2D * deltaGenL1_v3;
+  TH2D * deltaGenL1_pT3050_eta1_v4;
+  TH2D * deltaGenL1_pT3050_eta2_v1;
+  TH2D * deltaGenL1_pT3050_eta2_v4;
+  TH2D * deltaGenL1_pT3050_eta3_v1;
+  TH2D * deltaGenL1_pT3050_eta3_v4;
+  TH2D * deltaGenL1_ntowers;
+  TH2D * deltaGenL1_R1;
+  TH2D * deltaGenL1_R2;
+  TH2D * deltaGenL1_R3;
+  TH2D * deltaGenL1_R4;
+  TH2I * ET_TT_vs_ET_r1;
+  TH2I * ET_TT_vs_ET_r2;
+  TH2I * ET_TT_vs_ET_r3;
+  TH2I * ET_TT_vs_ET_r4;
+  //TH1D * jet1_ak4tt_pt;
+  //TH1D * jet2_ak4tt_pt;
+  //TH1D * jet3_ak4tt_pt;
+  //TH1D * jet4_ak4tt_pt;
+  //TH1D * jet1_ak4tt_eta;
+  //TH1D * jet2_ak4tt_eta;
+  //TH1D * jet3_ak4tt_eta;
+  //TH1D * jet4_ak4tt_eta;
+  TH1D * jet1_localmax_pt;
+  TH1D * jet2_localmax_pt;
+  TH1D * jet3_localmax_pt;
+  TH1D * jet4_localmax_pt;
+  TH1D * jet1PUSub1_localmax_pt;
+  TH1D * jet2PUSub1_localmax_pt;
+  TH1D * jet3PUSub1_localmax_pt;
+  TH1D * jet4PUSub1_localmax_pt;
+  TH1D * jet1_localmax_eta;
+  TH1D * jet2_localmax_eta;
+  TH1D * jet3_localmax_eta;
+  TH1D * jet4_localmax_eta;
+  TriggerTowerGeometry g; //to run the constructor -- could also make this static
+
+  std::map<std::string, TH1D * > col1_jet1_eta;
+  std::map<std::string, TH1D * > col1_jet2_eta;
+  std::map<std::string, TH1D * > col1_jet3_eta;
+  std::map<std::string, TH1D * > col1_jet4_eta;
+  std::map<std::string, TH1D * > col2_jet1_eta;
+  std::map<std::string, TH1D * > col2_jet2_eta;
+  std::map<std::string, TH1D * > col2_jet3_eta;
+  std::map<std::string, TH1D * > col2_jet4_eta;
+  std::map<std::string, TH1D * > col1_jet1_pt;
+  std::map<std::string, TH1D * > col1_jet2_pt;
+  std::map<std::string, TH1D * > col1_jet3_pt;
+  std::map<std::string, TH1D * > col1_jet4_pt;
+  std::map<std::string, TH1D * > col2_jet1_pt;
+  std::map<std::string, TH1D * > col2_jet2_pt;
+  std::map<std::string, TH1D * > col2_jet3_pt;
+  std::map<std::string, TH1D * > col2_jet4_pt;
+  std::map<std::string, TH1D * > col1_alljet_pt;
+  std::map<std::string, TH1D * > col2_alljet_pt;
+  std::map<std::string, TH1D * > col1_alljet_eta;
+  std::map<std::string, TH1D * > col2_alljet_eta;
+  std::map<std::string, TH1D * > col1_col2_matched_alljet_pt;
+  std::map<std::string, TH1D * > col1_col2_matched_alljet_eta;
+  std::map<std::string, TH2D * > col1_col2_matched_ptcorr;
+  std::map<std::string, TH2D * > col1_col2_matched_ptres;
+  std::map<std::string, TH1D * > col1_col2_matched_jet1_pt;
+  std::map<std::string, TH1D * > col1_col2_matched_jet2_pt;
+  std::map<std::string, TH1D * > col1_col2_matched_jet3_pt;
+  std::map<std::string, TH1D * > col1_col2_matched_jet4_pt;
+  std::map<std::string, TH1D * > col1_col2_matched_jet1_eta;
+  std::map<std::string, TH1D * > col1_col2_matched_jet2_eta;
+  std::map<std::string, TH1D * > col1_col2_matched_jet3_eta;
+  std::map<std::string, TH1D * > col1_col2_matched_jet4_eta;
+};
+
+void CaloTowerAnalyser::compareJetCollections(const std::vector<jJet> & col1, const std::vector<jJet> & col2, std::string folderName) {
+
+  edm::Service<TFileService> fs;
+  TFileDirectory dir = fs->mkdir(folderName);
+
+  //check initialised via means of mMapping, e.g.
+  if(col1_jet1_eta.count(folderName) == 0) { col1_jet1_eta[folderName] = dir.make<TH1D>("col1_jet1_eta",";eta jet1;",57, -0.5, 56.5); }
+  if(col1_jet2_eta.count(folderName) == 0) { col1_jet2_eta[folderName] = dir.make<TH1D>("col1_jet2_eta",";eta jet2;",57, -0.5, 56.5); }
+  if(col1_jet3_eta.count(folderName) == 0) { col1_jet3_eta[folderName] = dir.make<TH1D>("col1_jet3_eta",";eta jet3;",57, -0.5, 56.5); }
+  if(col1_jet4_eta.count(folderName) == 0) { col1_jet4_eta[folderName] = dir.make<TH1D>("col1_jet4_eta",";eta jet4;",57, -0.5, 56.5); }
+  if(col2_jet1_eta.count(folderName) == 0) { col2_jet1_eta[folderName] = dir.make<TH1D>("col2_jet1_eta",";eta jet1;",57, -0.5, 56.5); }
+  if(col2_jet2_eta.count(folderName) == 0) { col2_jet2_eta[folderName] = dir.make<TH1D>("col2_jet2_eta",";eta jet2;",57, -0.5, 56.5); }
+  if(col2_jet3_eta.count(folderName) == 0) { col2_jet3_eta[folderName] = dir.make<TH1D>("col2_jet3_eta",";eta jet3;",57, -0.5, 56.5); }
+  if(col2_jet4_eta.count(folderName) == 0) { col2_jet4_eta[folderName] = dir.make<TH1D>("col2_jet4_eta",";eta jet4;",57, -0.5, 56.5); }
+  if(col1_jet1_pt.count(folderName) == 0) { col1_jet1_pt[folderName] = dir.make<TH1D>("col1_jet1_pt",";p_{T} jet1;",1000, -0.5, 999.5); }
+  if(col1_jet2_pt.count(folderName) == 0) { col1_jet2_pt[folderName] = dir.make<TH1D>("col1_jet2_pt",";p_{T} jet2;",1000, -0.5, 999.5); }
+  if(col1_jet3_pt.count(folderName) == 0) { col1_jet3_pt[folderName] = dir.make<TH1D>("col1_jet3_pt",";p_{T} jet3;",1000, -0.5, 999.5); }
+  if(col1_jet4_pt.count(folderName) == 0) { col1_jet4_pt[folderName] = dir.make<TH1D>("col1_jet4_pt",";p_{T} jet4;",1000, -0.5, 999.5); }
+  if(col2_jet1_pt.count(folderName) == 0) { col2_jet1_pt[folderName] = dir.make<TH1D>("col2_jet1_pt",";p_{T} jet1;",1000, -0.5, 999.5); }
+  if(col2_jet2_pt.count(folderName) == 0) { col2_jet2_pt[folderName] = dir.make<TH1D>("col2_jet2_pt",";p_{T} jet2;",1000, -0.5, 999.5); }
+  if(col2_jet3_pt.count(folderName) == 0) { col2_jet3_pt[folderName] = dir.make<TH1D>("col2_jet3_pt",";p_{T} jet3;",1000, -0.5, 999.5); }
+  if(col2_jet4_pt.count(folderName) == 0) { col2_jet4_pt[folderName] = dir.make<TH1D>("col2_jet4_pt",";p_{T} jet4;",1000, -0.5, 999.5); }
+  if(col1_alljet_pt.count(folderName) == 0) { col1_alljet_pt[folderName] = dir.make<TH1D>("col1_alljet_pt",";p_{T} all jets;",1000, -0.5, 999.5); }
+  if(col2_alljet_pt.count(folderName) == 0) { col2_alljet_pt[folderName] = dir.make<TH1D>("col2_alljet_pt",";p_{T} all jets;",1000, -0.5, 999.5); }
+  if(col1_alljet_eta.count(folderName) == 0) { col1_alljet_eta[folderName] = dir.make<TH1D>("col1_alljet_eta",";eta all jets;",57, -0.5, 56.5); }
+  if(col2_alljet_eta.count(folderName) == 0) { col2_alljet_eta[folderName] = dir.make<TH1D>("col2_alljet_eta",";eta all jets;",57, -0.5, 56.5);}
+  if(col1_col2_matched_alljet_pt.count(folderName) == 0) { col1_col2_matched_alljet_pt[folderName] = dir.make<TH1D>("col1_col2_matched_alljet_pt",";p_{T} all jets matched;",1000, -0.5, 999.5); }
+  if(col1_col2_matched_alljet_eta.count(folderName) == 0) { col1_col2_matched_alljet_eta[folderName] = dir.make<TH1D>("col1_col2_matched_alljet_eta",";eta all jets matched;",57, -0.5, 56.5); }
+  if(col1_col2_matched_ptcorr.count(folderName) == 0) { col1_col2_matched_ptcorr[folderName] = dir.make<TH2D>("col1_col2_matched_ptcorr", ";col1 pT;col2 pT", 1000, -0.5, 999.5, 1000, -0.5, 999.5); }
+  if(col1_col2_matched_ptres.count(folderName) == 0) { col1_col2_matched_ptres[folderName] = dir.make<TH2D>("col1_col2_matched_ptres", ";col1 pT; (col2 - col1) / col1 pT", 1000, -0.5, 999.5, 200, -10.05, 10.95); }
+  if(col1_col2_matched_jet1_pt.count(folderName) == 0) { col1_col2_matched_jet1_pt[folderName] = dir.make<TH1D>("col1_col2_matched_jet1_pt",";p_{T} jet1 matched;",1000, -0.5, 999.5); }
+  if(col1_col2_matched_jet2_pt.count(folderName) == 0) { col1_col2_matched_jet2_pt[folderName] = dir.make<TH1D>("col1_col2_matched_jet2_pt",";p_{T} jet2 matched;",1000, -0.5, 999.5); }
+  if(col1_col2_matched_jet3_pt.count(folderName) == 0) { col1_col2_matched_jet3_pt[folderName] = dir.make<TH1D>("col1_col2_matched_jet3_pt",";p_{T} jet3 matched;",1000, -0.5, 999.5); }
+  if(col1_col2_matched_jet4_pt.count(folderName) == 0) { col1_col2_matched_jet4_pt[folderName] = dir.make<TH1D>("col1_col2_matched_jet4_pt",";p_{T} jet4 matched;",1000, -0.5, 999.5); }
+  if(col1_col2_matched_jet1_eta.count(folderName) == 0) { col1_col2_matched_jet1_eta[folderName] = dir.make<TH1D>("col1_col2_matched_jet1_eta",";eta jet1 matched;",57, -0.5, 56.5); }
+  if(col1_col2_matched_jet2_eta.count(folderName) == 0) { col1_col2_matched_jet2_eta[folderName] = dir.make<TH1D>("col1_col2_matched_jet2_eta",";eta jet2 matched;",57, -0.5, 56.5); }
+  if(col1_col2_matched_jet3_eta.count(folderName) == 0) { col1_col2_matched_jet3_eta[folderName] = dir.make<TH1D>("col1_col2_matched_jet3_eta",";eta jet3 matched;",57, -0.5, 56.5); }
+  if(col1_col2_matched_jet4_eta.count(folderName) == 0) { col1_col2_matched_jet4_eta[folderName] = dir.make<TH1D>("col1_col2_matched_jet4_eta",";eta jet4 matched;",57, -0.5, 56.5); }
+
+  for(unsigned int i=0; i<col1.size(); i++) {
+    col1_alljet_pt[folderName]->Fill(col1[i].pt());
+    col1_alljet_eta[folderName]->Fill(g.new_iEta(col1[i].iEta()));
+    if(i == 0) { col1_jet1_pt[folderName]->Fill(col1[i].pt()); col1_jet1_eta[folderName]->Fill(g.new_iEta(col1[i].iEta())); }
+    if(i == 1) { col1_jet2_pt[folderName]->Fill(col1[i].pt()); col1_jet2_eta[folderName]->Fill(g.new_iEta(col1[i].iEta())); }
+    if(i == 2) { col1_jet3_pt[folderName]->Fill(col1[i].pt()); col1_jet3_eta[folderName]->Fill(g.new_iEta(col1[i].iEta())); }
+    if(i == 3) { col1_jet4_pt[folderName]->Fill(col1[i].pt()); col1_jet4_eta[folderName]->Fill(g.new_iEta(col1[i].iEta())); }
+  }
+  for(unsigned int i=0; i<col2.size(); i++) {
+    col2_alljet_pt[folderName]->Fill(col2[i].pt());
+    col2_alljet_eta[folderName]->Fill(g.new_iEta(col2[i].iEta()));
+    if(i == 0) { col2_jet1_pt[folderName]->Fill(col2[i].pt()); col2_jet1_eta[folderName]->Fill(g.new_iEta(col2[i].iEta())); }
+    if(i == 1) { col2_jet2_pt[folderName]->Fill(col2[i].pt()); col2_jet2_eta[folderName]->Fill(g.new_iEta(col2[i].iEta())); }
+    if(i == 2) { col2_jet3_pt[folderName]->Fill(col2[i].pt()); col2_jet3_eta[folderName]->Fill(g.new_iEta(col2[i].iEta())); }
+    if(i == 3) { col2_jet4_pt[folderName]->Fill(col2[i].pt()); col2_jet4_eta[folderName]->Fill(g.new_iEta(col2[i].iEta())); }
+  }
+
+  pairs = make_pairs(col1, col2);
+  std::sort(pairs.begin(), pairs.end(), sortDR);
+  std::vector<int> col2_matched_index = analyse_pairs(pairs, col2.size(), 16);
+
+  for(unsigned int i=0; i<col2_matched_index.size(); i++) {
+    //std::cout << "ak4genjetp with index " << i << " is matched to ak4ttjet with index " << ak4tt_matched_index[i] << std::endl;
+    if(col2_matched_index[i] != -1) {
+      col1_col2_matched_alljet_pt[folderName]->Fill(col2[i].pt());
+      col1_col2_matched_alljet_eta[folderName]->Fill(g.new_iEta(col2[i].iEta()));
+      col1_col2_matched_ptcorr[folderName]->Fill(col1[col2_matched_index[i]].pt(), col2[i].pt());
+      if(col2[i].pt() > 0.0) {
+	col1_col2_matched_ptres[folderName]->Fill(col1[col2_matched_index[i]].pt(), ( col2[i].pt() / col1[col2_matched_index[i]].pt()) - 1.0 );
+      }
+
+      if(i == 0) { col1_col2_matched_jet1_pt[folderName]->Fill(col2[i].pt()); col1_col2_matched_jet1_eta[folderName]->Fill(g.new_iEta(col2[i].iEta())); }
+      if(i == 1) { col1_col2_matched_jet2_pt[folderName]->Fill(col2[i].pt()); col1_col2_matched_jet2_eta[folderName]->Fill(g.new_iEta(col2[i].iEta())); }
+      if(i == 2) { col1_col2_matched_jet3_pt[folderName]->Fill(col2[i].pt()); col1_col2_matched_jet3_eta[folderName]->Fill(g.new_iEta(col2[i].iEta())); }
+      if(i == 3) { col1_col2_matched_jet4_pt[folderName]->Fill(col2[i].pt()); col1_col2_matched_jet4_eta[folderName]->Fill(g.new_iEta(col2[i].iEta())); }
+
+    }
+
+  }
+
+  return;
+
+}
+
+void CaloTowerAnalyser::printOneEvent(const edm::Handle<l1slhc::L1CaloTowerCollection> triggertowers, const std::vector<jJet> & L1jets, const std::vector<fastjet::PseudoJet> & ak4ttjets, const reco::GenJetCollection * ak4genjets, std::vector<fastjet::PseudoJet> & ak4genjetsp) {
+
+  edm::Service<TFileService> fs;
+
+  std::string folderName = "Event_";
+  std::stringstream caseNumber;
+  caseNumber << mEventNumber;
+  folderName.append(caseNumber.str());
+  TFileDirectory dir = fs->mkdir(folderName);
+
+  TH2I * ttow = dir.make<TH2I>("ttow",";eta;phi", 57,-28.5,28.5, 72, 0.5, 72.5);
+  TH2I * ttowE = dir.make<TH2I>("ttowE",";eta;phi", 57,-28.5,28.5, 72, 0.5, 72.5);
+  TH2I * ttowH = dir.make<TH2I>("ttowH",";eta;phi", 57,-28.5,28.5, 72, 0.5, 72.5);
+  TH2I * L1jet = dir.make<TH2I>("L1jet",";eta;phi", 57,-28.5,28.5, 72, 0.5, 72.5);
+  TH2D * ak4tt = dir.make<TH2D>("ak4tt",";eta;phi", 57,-28.5,28.5, 72, 0.5, 72.5);
+  TH2D * ak4gen = dir.make<TH2D>("ak4gen",";eta;phi", 57,-28.5,28.5, 72, 0.5, 72.5);
+  TH2D * ak4genp = dir.make<TH2D>("ak4genp",";eta;phi",57, -28.5, 28.5, 72, 0.5, 72.5);
+
+  for(l1slhc::L1CaloTowerCollection::const_iterator j=triggertowers->begin(); j!=triggertowers->end(); j++) {
+    if ( abs((*j).iEta()) > 28 ) {
+      continue;
+    }
+    ttow->Fill((*j).iEta(), (*j).iPhi(), ((*j).E() + (*j).H()));
+    ttowE->Fill((*j).iEta(), (*j).iPhi(), (*j).E());
+    ttowH->Fill((*j).iEta(), (*j).iPhi(), (*j).H());
+  }
+
+  for(unsigned int i=0; i<L1jets.size(); i++) {
+    L1jet->Fill(L1jets[i].iEta(), L1jets[i].iPhi(), L1jets[i].pt());
+  }
+
+  for(unsigned int i=0; i < ak4genjets->size(); i++) {
+    ak4gen->Fill(g.iEta((*ak4genjets)[i].eta()), g.iPhi((*ak4genjets)[i].phi()), (*ak4genjets)[i].pt());
+    //std::cout << "(" << (*ak4genjets)[i].eta() << ", " << (*ak4genjets)[i].phi() << ") (" << g.iEta((*ak4genjets)[i].eta()) << ", " << g.iPhi((*ak4genjets)[i].phi()) << ")" << std::endl;
+  }
+
+  for(unsigned int i=0; i< ak4ttjets.size(); i++) {
+    ak4tt->Fill(g.iEta(ak4ttjets[i].eta()), g.iPhi(ak4ttjets[i].phi()), ak4ttjets[i].pt());
+  }
+
+  for(unsigned int i=0; i < ak4genjetsp.size(); i++) {
+    //std::cout << "(" << ak4genjetsp[i].eta() << " --> " << g.iEta(ak4genjetsp[i].eta()) << ")" << std::endl;
+    ak4genp->Fill(g.iEta((ak4genjetsp)[i].eta()), g.iPhi((ak4genjetsp)[i].phi()), (ak4genjetsp)[i].pt());
+  }  
+
+
+}
+
+void CaloTowerAnalyser::getJets(std::vector < fastjet::PseudoJet > &constits,std::vector < fastjet::PseudoJet > &jets) { 
+
+  double rParam = 0.4;
+  fastjet::JetDefinition jetDef(fastjet::antikt_algorithm, rParam);    
+  int activeAreaRepeats = 1;
+  double ghostArea = 0.01;
+  double ghostEtaMax = 7.0;
+  fastjet::GhostedAreaSpec fjActiveArea(ghostEtaMax,activeAreaRepeats,ghostArea);
+  fastjet::AreaDefinition fjAreaDefinition( fastjet::active_area, fjActiveArea );
+  fastjet::ClusterSequenceArea* thisClustering_ = new fastjet::ClusterSequenceArea(constits, jetDef, fjAreaDefinition);
+  std::vector<fastjet::PseudoJet> out_jets = sorted_by_pt(thisClustering_->inclusive_jets(5.0));
+  for(unsigned int i0 = 0; i0 < out_jets.size(); i0++) jets.push_back(out_jets[i0]);
+
+}
+
+
+std::vector<jJet> CaloTowerAnalyser::getL1Jets(const std::vector< std::vector<int> > & input, int jetsize, int vetowindowsize, int seedthresh1, int seedthresh2) {
+
+  //seedthresh1 is the seedthreshold on the central tower
+  //seedthresh2 is the threshold on all towers a la zero suppression
+  //jetsize is the +/- number to span i.e. +/- 1 = 3x3
+  //vetowindowsize is the +/- number window to look at to potentially veto the central tower
+
+  std::vector<jJet> L1_jJets;
+  TriggerTowerGeometry g;
+
+ 
+  //std::cout << input.size() << ", " << input[0].size() << std::endl;
+
+  for ( int i = 0; i < (int)input.size(); i++) {
+    for ( int j = 0; j < (int)input[i].size(); j++) {
+      //std::cout << "new: (" << i << ", " << j << ", " << input[i][j] << ")" << std::endl;
+      //int localsum=0;    int area=0;
+      //int localsum_r1=0; int area_r1=0;
+      //int localsum_r2=0; int area_r2=0;
+      //int localsum_r3=0; int area_r3=0;
+      //int localsum_r4=0; int area_r4=0;
+      int numtowersaboveme=0;
+      int numtowersabovethresh=0;
+      //int seedthresh1=0;//5; //this is on the central tower
+      //int seedthresh2=0; //this is on the towers surrounding the central tower
+
+      std::vector<int> localsums(jetsize+1,0); //to hold the ring sums (+1 for centre)
+      std::vector<int> areas(jetsize+1,0); //to hold the ring areas (i.e. when we get up against the boundaries)
+      std::vector<int> outerstrips(4,0); //to hold the energies in the 4 surrounding outer strips (excluding corners)
+      
+      for(int k=(i-jetsize); k<=(i+jetsize); k++) {
+	for(int l=(j-jetsize); l<=(j+jetsize); l++) {
+	  if(k < 0 || k > 55) continue; //i.e. out of bounds of eta<3
+	  //std::cout << " k = " << k << ", l = " << l << ", i =" << i << ", j = " << j << std::endl;
+	  
+	  //make a co-ordinate transform at the phi boundary
+	  int newl;
+	  if(l < 0) { newl = l+72; } 
+	  else if (l > 71) { newl = l-72; } 
+	  else { newl = l; }
+
+	  if(input[k][newl] > seedthresh2) { numtowersabovethresh++; }
+	  
+	  //to decide which ring to assign energy to
+	  for( int m=0; m<jetsize+1;m++) { //+1 for centre of jet
+	    if((abs(i-k) == m && abs(j-l) <= m) || (abs(i-k) <= m && abs(j-l) == m)) { 
+	      //i.e. we are now in ring m
+	      localsums[m] += input[k][newl]; 
+	      areas[m] += 1;
+
+	      if(m == jetsize) { //i.e. we are in the outer ring and want to parameterise PU
+		if( (k-i) == m && abs(j-l) <= (m-1) ) { outerstrips[0] += input[k][newl]; }
+		if( (i-k) == m && abs(j-l) <= (m-1) ) { outerstrips[1] += input[k][newl]; }
+		if( (l-j) == m && abs(i-k) <= (m-1) ) { outerstrips[2] += input[k][newl]; }
+		if( (j-l) == m && abs(i-k) <= (m-1) ) { outerstrips[3] += input[k][newl]; }
+	      }
+ 
+	      if(m > 0 && m <= vetowindowsize) { //i.e. don't compare the central tower or towers outside vetowindowsize
+		
+		if((k+l) > (i+j) ) { if(input[k][newl] > input[i][j]) { numtowersaboveme++; } }
+		else if( ((k+l) == (i+j)) && (k-i) > (l-j)) { if(input[k][newl] > input[i][j]) { numtowersaboveme++; } } //this line is to break the degeneracy along the diagonal treating top left different to bottom right
+		else { if(input[k][newl] >= input[i][j]) { numtowersaboveme++; } }
+		
+	      }
+	      break; //no point continuining since can only be a member of one ring
+	    }
+	  }
+	  
+	}
+      }
+      
+      //now we have a jet candidate centred at i,j, with the ring energies and areas defined
+      
+      //now we have the L1 jet candidate:
+      if(numtowersaboveme == 0 && input[i][j] > seedthresh1) {
+	double totalenergy=0.0;
+	//std::cout << "iEta: " << g.old_iEta(i) << ", iPhi: " << g.old_iPhi(j) << ", r0: " << localsums[0] <<  ", r1: " << localsums[1] << ", r2: " << localsums[2] << ", r3: " << localsums[3] << ", r4: " << localsums[4] << std::endl;
+	//for(int ring=0; ring < (int)localsums.size(); ring++) { totalenergy += localsums[ring]; }
+	for(int ring=0; ring < (int)localsums.size()-1; ring++) { totalenergy += localsums[ring]; }
+	std::sort(outerstrips.begin(),outerstrips.end());
+	totalenergy = totalenergy - (3.5 * (outerstrips[1] + outerstrips[2]));
+	
+	//this means we have a viable candidate
+	if(totalenergy > 0.0) {
+	  L1_jJets.push_back(jJet(totalenergy, g.old_iEta(i), g.old_iPhi(j), localsums, areas, outerstrips));
+	}
+	//double donut_energy = localsum - ( (1.0 + ( (double)(area - area_r4) / (double)area_r4) ) * localsum_r4); //"1.0 +" to remove the r4 added into the localsum
+	//int donut_energy = totalenergy;
+	//if(donut_energy > 0.0) {
+	//  L1donut_jJet.push_back(jJet(donut_energy, g.old_iEta(i), g.old_iPhi(j) ) );
+	//}
+	
+	//now look at correlation between total energy and ring energy for jets which survive
+	//ET_TT_vs_ET_r1->Fill(localsum, (double)localsum_r1/(double)localsum);
+	//ET_TT_vs_ET_r2->Fill(localsum, (double)localsum_r2/(double)localsum);
+	//ET_TT_vs_ET_r3->Fill(localsum, (double)localsum_r3/(double)localsum);
+	//ET_TT_vs_ET_r4->Fill(localsum, (double)localsum_r4/(double)localsum);
+      }
+      
+    }
+  }
+  
+  
+  return L1_jJets;
+
+}
+
+std::vector<int> CaloTowerAnalyser::closestJetDistance(const std::vector<jJet> & jJets) {
+
+  std::vector<int> distances(jJets.size(),-1);
+  
+  bool summary=false;
+
+  //std::cout << "event size: " << jJets.size() << std::endl;
+
+  if(jJets.size() > 0) { //will get distance =999 for closest distance if only 1 jet
+    for(int i=0; i<(int)jJets.size(); i++) {
+      int closestDR2 = 999;
+      
+      //std::cout << i << " closest to " << distances[i] << std::endl;
+      
+      for(int j=0; j<(int)jJets.size(); j++) {
+	if(i!=j && jJets[i].DeltaR2(jJets[j]) < closestDR2) { closestDR2 = jJets[i].DeltaR2(jJets[j]); }
+      }
+      distances[i] = closestDR2;
+      //std::cout << i << " closest distance " << closestDR2 << std::endl;
+      
+    }
+    
+  } else { std::cout << "no jets in collection" << std::endl; throw 1; }
+
+  if(summary) {
+    for(unsigned int i=0; i< distances.size(); i++) {
+      std::cout << "jet " << i << " (" << jJets[i].pt() << ", " << jJets[i].iEta() << ", " << jJets[i].iPhi() << ") closest = " << distances[i] << std::endl; 
+    }
+
+  }
+
+  return distances;
+}
+
+//
+// constants, enums and typedefs
+//
+
+//
+// static data member definitions
+//
+
+//
+// constructors and destructor
+//
+CaloTowerAnalyser::CaloTowerAnalyser(const edm::ParameterSet& iConfig) {
+
+  //edm::Service<TFileService> fs;
+  edm::Service<TFileService> fs;
+  
+  // std::string folderName = "Event_";
+  // std::stringstream caseNumber;
+  // caseNumber << eventNumber;
+  // folderName.append(caseNumber.str());
+  TFileDirectory dir = fs->mkdir("global_histograms");
+
+  TriggerTowerGeometry g; //to run the constructor -- could also make this static
+  
+  ak4tt_pt = dir.make<TH1D>("ak4tt_pt",";p_{T};",1000, -0.5, 999.5);
+  ak4tt_pt_match_L1 = dir.make<TH1D>("ak4tt_pt_match_L1",";p_{T};",1000, -0.5, 999.5);
+  jet1_ak4tt_pt_match_L1 = dir.make<TH1D>("jet1_ak4tt_pt_match_L1",";p_{T};",1000, -0.5, 999.5);
+  jet2_ak4tt_pt_match_L1 = dir.make<TH1D>("jet2_ak4tt_pt_match_L1",";p_{T};",1000, -0.5, 999.5);
+  jet3_ak4tt_pt_match_L1 = dir.make<TH1D>("jet3_ak4tt_pt_match_L1",";p_{T};",1000, -0.5, 999.5);
+  jet4_ak4tt_pt_match_L1 = dir.make<TH1D>("jet4_ak4tt_pt_match_L1",";p_{T};",1000, -0.5, 999.5);
+  genjet_pt = dir.make<TH1D>("genjet_pt",";p_{T};",1000, -0.5, 999.5);
+  genjet_pt_nomunu = dir.make<TH1D>("genjet_pt_nomunu",";p_{T};",1000, -0.5, 999.5);
+  genjet_pt_nomunu_far = dir.make<TH1D>("genjet_pt_nomunu_far",";p_{T};",1000, -0.5, 999.5);
+  jet1_genjet_pt_nomunu = dir.make<TH1D>("jet1_genjet_pt_nomunu",";p_{T};",1000, -0.5, 999.5);
+  jet2_genjet_pt_nomunu = dir.make<TH1D>("jet2_genjet_pt_nomunu",";p_{T};",1000, -0.5, 999.5);
+  jet3_genjet_pt_nomunu = dir.make<TH1D>("jet3_genjet_pt_nomunu",";p_{T};",1000, -0.5, 999.5);
+  jet4_genjet_pt_nomunu = dir.make<TH1D>("jet4_genjet_pt_nomunu",";p_{T};",1000, -0.5, 999.5);
+  genjet_pt_nomunu_match_L1 = dir.make<TH1D>("genjet_pt_nomunu_match_L1",";p_{T};",1000, -0.5, 999.5);
+  genjet_pt_nomunu_far_match_L1 = dir.make<TH1D>("genjet_pt_nomunu_far_match_L1",";p_{T};",1000, -0.5, 999.5);
+  jet1_genjet_pt_nomunu_match_L1 = dir.make<TH1D>("jet1_genjet_pt_nomunu_match_L1",";p_{T};",1000, -0.5, 999.5);
+  jet2_genjet_pt_nomunu_match_L1 = dir.make<TH1D>("jet2_genjet_pt_nomunu_match_L1",";p_{T};",1000, -0.5, 999.5);
+  jet3_genjet_pt_nomunu_match_L1 = dir.make<TH1D>("jet3_genjet_pt_nomunu_match_L1",";p_{T};",1000, -0.5, 999.5);
+  jet4_genjet_pt_nomunu_match_L1 = dir.make<TH1D>("jet4_genjet_pt_nomunu_match_L1",";p_{T};",1000, -0.5, 999.5);
+  genjet_pt_nomunu_match_L1donut = dir.make<TH1D>("genjet_pt_nomunu_match_L1donut",";p_{T};",1000, -0.5, 999.5);
+  genjet_pt_nomunu_match_ak4tt = dir.make<TH1D>("genjet_pt_nomunu_match_ak4tt",";p_{T};",1000, -0.5, 999.5);
+  jet1_genjet_pt_nomunu_match_ak4tt = dir.make<TH1D>("jet1_genjet_pt_nomunu_match_ak4tt",";p_{T};",1000, -0.5, 999.5);
+  jet2_genjet_pt_nomunu_match_ak4tt = dir.make<TH1D>("jet2_genjet_pt_nomunu_match_ak4tt",";p_{T};",1000, -0.5, 999.5);
+  jet3_genjet_pt_nomunu_match_ak4tt = dir.make<TH1D>("jet3_genjet_pt_nomunu_match_ak4tt",";p_{T};",1000, -0.5, 999.5);
+  jet4_genjet_pt_nomunu_match_ak4tt = dir.make<TH1D>("jet4_genjet_pt_nomunu_match_ak4tt",";p_{T};",1000, -0.5, 999.5);
+
+  genjet_eta_nomunu = dir.make<TH1D>("genjet_eta_nomunu",";iEta;",57, -28.5, 28.5);
+  genjet_eta_nomunu_match_ak4tt = dir.make<TH1D>("genjet_eta_nomunu_match_ak4tt",";iEta;",57, -28.5, 28.5);
+  genjet_eta_nomunu_match_L1 = dir.make<TH1D>("genjet_eta_nomunu_match_L1",";iEta;",57, -28.5, 28.5);
+
+  towermax_matchedtoak4tt = dir.make<TH1D>("towermax_matchedtoak4tt", ";towermatched?;", 2, -0.5, 1.5);
+  towermax_unmatched_genjetpt = dir.make<TH1D>("towermax_unmatched_genjetpt",";p_{T} unmatched localmax;", 1000, -0.5, 999.5);
+  towermax_unmatched_ak4tt = dir.make<TH1D>("towermax_unmatched_ak4tt",";p_{T} unmatched localmax;", 1000, -0.5, 999.5);
+
+  L1_vs_ak4tt = dir.make<TH2D>("L1_vs_ak4tt", ";L1;ak4tt", 1000, -0.5, 999.5, 1000, -0.5, 999.5);
+  L1_vs_genjetpt = dir.make<TH2D>("L1_vs_genjetpt", ";L1;genjetpt", 1000, -0.5, 999.5, 1000, -0.5, 999.5);
+  L1donut_vs_genjetpt = dir.make<TH2D>("L1donut_vs_genjetpt", ";L1donut;genjetpt", 1000, -0.5, 999.5, 1000, -0.5, 999.5);
+  ak4tt_vs_genjetpt = dir.make<TH2D>("ak4tt_vs_genjetpt", ";ak4tt;genjetpt", 1000, -0.5, 999.5, 1000, -0.5, 999.5);
+
+  smallest_dist_localmax = dir.make<TH1D>("smallest_dist_localmax",";deltaR^{2};",1000, -0.5, 999.5);
+  smallest_dist_ak4jets = dir.make<TH1D>("smallest_dist_ak4jets",";deltaR^{2};",1000, -0.5, 999.5);
+  median_energy_per_event = dir.make<TH1D>("median_energy_per_event",";median energy per event;",100, -0.5, 99.5);
+  ET_TT_vs_ET_r1 = dir.make<TH2I>("ET_TT_vs_ET_r1",";TT;R1",1000,-0.5, 999.5, 100, -0.005, 0.995);
+  ET_TT_vs_ET_r2 = dir.make<TH2I>("ET_TT_vs_ET_r2",";TT;R2",1000,-0.5, 999.5, 100, -0.005, 0.995);
+  ET_TT_vs_ET_r3 = dir.make<TH2I>("ET_TT_vs_ET_r3",";TT;R3",1000,-0.5, 999.5, 100, -0.005, 0.995);
+  ET_TT_vs_ET_r4 = dir.make<TH2I>("ET_TT_vs_ET_r4",";TT;R4",1000,-0.5, 999.5, 100, -0.005, 0.995);
+  jet1_ak4tt_pt = dir.make<TH1D>("jet1_ak4tt_pt",";p_{T} jet1;",1000, -0.5, 999.5);
+  jet2_ak4tt_pt = dir.make<TH1D>("jet2_ak4tt_pt",";p_{T} jet2;",1000, -0.5, 999.5);
+  jet3_ak4tt_pt = dir.make<TH1D>("jet3_ak4tt_pt",";p_{T} jet3;",1000, -0.5, 999.5);
+  jet4_ak4tt_pt = dir.make<TH1D>("jet4_ak4tt_pt",";p_{T} jet4;",1000, -0.5, 999.5);
+  jet1_ak4tt_eta = dir.make<TH1D>("jet1_ak4tt_eta",";eta jet1;",57, -0.5, 56.5);
+  jet2_ak4tt_eta = dir.make<TH1D>("jet2_ak4tt_eta",";eta jet2;",57, -0.5, 56.5);
+  jet3_ak4tt_eta = dir.make<TH1D>("jet3_ak4tt_eta",";eta jet3;",57, -0.5, 56.5);
+  jet4_ak4tt_eta = dir.make<TH1D>("jet4_ak4tt_eta",";eta jet4;",57, -0.5, 56.5);
+  jet1_localmax_pt = dir.make<TH1D>("jet1_localmax_pt",";p_{T} jet1;",1000, -0.5, 999.5);
+  jet2_localmax_pt = dir.make<TH1D>("jet2_localmax_pt",";p_{T} jet2;",1000, -0.5, 999.5);
+  jet3_localmax_pt = dir.make<TH1D>("jet3_localmax_pt",";p_{T} jet3;",1000, -0.5, 999.5);
+  jet4_localmax_pt = dir.make<TH1D>("jet4_localmax_pt",";p_{T} jet4;",1000, -0.5, 999.5);
+  jet1_localmax_eta = dir.make<TH1D>("jet1_localmax_eta",";eta jet1;",57, -0.5, 56.5);
+  jet2_localmax_eta = dir.make<TH1D>("jet2_localmax_eta",";eta jet2;",57, -0.5, 56.5);
+  jet3_localmax_eta = dir.make<TH1D>("jet3_localmax_eta",";eta jet3;",57, -0.5, 56.5);
+  jet4_localmax_eta = dir.make<TH1D>("jet4_localmax_eta",";eta jet4;",57, -0.5, 56.5);
+  jet1PUSub1_localmax_pt = dir.make<TH1D>("jet1PUSub1_localmax_pt",";p_{T} jet1;",1000, -0.5, 999.5);
+  jet2PUSub1_localmax_pt = dir.make<TH1D>("jet2PUSub1_localmax_pt",";p_{T} jet2;",1000, -0.5, 999.5);
+  jet3PUSub1_localmax_pt = dir.make<TH1D>("jet3PUSub1_localmax_pt",";p_{T} jet3;",1000, -0.5, 999.5);
+  jet4PUSub1_localmax_pt = dir.make<TH1D>("jet4PUSub1_localmax_pt",";p_{T} jet4;",1000, -0.5, 999.5);
+  ntowers_vs_npv = dir.make<TH2D>("ntowers_vs_npv", ";ntowers;NPV", 500, -5, 4995, 100, -0.5, 99.5);
+ 
+  r4_vs_npv_eta1_pt3050 = dir.make<TH2D>("r4_vs_npv_eta1_pt3050", ";r4;NPV", 100, -0.5, 99.5, 100, -0.5, 99.5);
+  r4_vs_npv_eta2_pt3050 = dir.make<TH2D>("r4_vs_npv_eta2_pt3050", ";r4;NPV", 100, -0.5, 99.5, 100, -0.5, 99.5);
+  r4_vs_npv_eta3_pt3050 = dir.make<TH2D>("r4_vs_npv_eta3_pt3050", ";r4;NPV", 100, -0.5, 99.5, 100, -0.5, 99.5);
+  r4_vs_npv_eta1_pt80100 = dir.make<TH2D>("r4_vs_npv_eta1_pt80100", ";r4;NPV", 100, -0.5, 99.5, 100, -0.5, 99.5);
+  r4_vs_npv_eta2_pt80100 = dir.make<TH2D>("r4_vs_npv_eta2_pt80100", ";r4;NPV", 100, -0.5, 99.5, 100, -0.5, 99.5);
+  r4_vs_npv_eta3_pt80100 = dir.make<TH2D>("r4_vs_npv_eta3_pt80100", ";r4;NPV", 100, -0.5, 99.5, 100, -0.5, 99.5);
+
+
+  deltaGenL1_pT3050_eta1_v1 = dir.make<TH2D>("deltaGenL1_pT3050_eta1_v1",";delta(Gen, L1);NPV", 100, -5.05, 4.95, 11, -2.5, 52.5);
+  deltaGenL1_v2 = dir.make<TH2D>("deltaGenL1_v2",";delta(Gen, L1);NPV", 100, -5.05, 4.95, 11, -2.5, 52.5);
+  deltaGenL1_v3 = dir.make<TH2D>("deltaGenL1_v3",";delta(Gen, L1);NPV", 100, -5.05, 4.95, 11, -2.5, 52.5);
+  deltaGenL1_pT3050_eta1_v4 = dir.make<TH2D>("deltaGenL1_pT3050_eta1_v4",";delta(Gen, L1);NPV", 100, -5.05, 4.95, 11, -2.5, 52.5);
+  deltaGenL1_pT3050_eta2_v1 = dir.make<TH2D>("deltaGenL1_pT3050_eta2_v1",";delta(Gen, L1);NPV", 100, -5.05, 4.95, 11, -2.5, 52.5);
+  deltaGenL1_pT3050_eta2_v4 = dir.make<TH2D>("deltaGenL1_pT3050_eta2_v4",";delta(Gen, L1);NPV", 100, -5.05, 4.95, 11, -2.5, 52.5);
+  deltaGenL1_pT3050_eta3_v1 = dir.make<TH2D>("deltaGenL1_pT3050_eta3_v1",";delta(Gen, L1);NPV", 100, -5.05, 4.95, 11, -2.5, 52.5);
+  deltaGenL1_pT3050_eta3_v4 = dir.make<TH2D>("deltaGenL1_pT3050_eta3_v4",";delta(Gen, L1);NPV", 100, -5.05, 4.95, 11, -2.5, 52.5);
+  deltaGenL1_ntowers = dir.make<TH2D>("deltaGenL1_ntowers",";delta(Gen,L1);ntowers",100, -50.5, 49.5, 100, -0.5, 99.5);
+  deltaGenL1_R1 = dir.make<TH2D>("deltaGenL1_R1",";delta(Gen,L1);R1",100, -50.5, 49.5, 100, -0.5, 99.5);
+  deltaGenL1_R2 = dir.make<TH2D>("deltaGenL1_R2",";delta(Gen,L1);R2",100, -50.5, 49.5, 100, -0.5, 99.5);
+  deltaGenL1_R3 = dir.make<TH2D>("deltaGenL1_R3",";delta(Gen,L1);R3",100, -50.5, 49.5, 100, -0.5, 99.5);
+  deltaGenL1_R4 = dir.make<TH2D>("deltaGenL1_R4",";delta(Gen,L1);R4",100, -50.5, 49.5, 100, -0.5, 99.5);
+  mEventNumber=1;
+}
+
+
+CaloTowerAnalyser::~CaloTowerAnalyser()
+{
+ 
+   // do anything here that needs to be done at desctruction time
+   // (e.g. close files, deallocate resources etc.)
+
+}
+
+
+
+//
+// member functions
+//
+
+// ------------ method called for each event  ------------
+void
+CaloTowerAnalyser::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
+{
+  if (mEventNumber % 100 == 0) { std::cout << "starting event " << mEventNumber << std::endl; }
+
+
+  /*
+  std::cout << "at event " << mEventNumber << std::endl;
+
+  // Get GCT jets (uncalib) collection
+  edm::Handle<L1GctJetCandCollection> GctUncalibCenJets;
+  edm::InputTag gctUncalibCenJets("valGctDigis","cenJets","jadtest");
+  iEvent.getByLabel(gctUncalibCenJets, GctUncalibCenJets);
+
+  for(unsigned int i=0; i<GctUncalibCenJets->size(); i++) {
+    std::cout << GctUncalibCenJets->at(i).rank() << ", " << GctUncalibCenJets->at(i).regionId().ieta() << ", " << GctUncalibCenJets->at(i).regionId().iphi() << std::endl;
+  }
+
+  // Get GCT jets (uncalib) collection
+  edm::Handle<L1GctJetCandCollection> GctCalibCenJets;
+  edm::InputTag gctCalibCenJets("gctDigis","cenJets","jadtest");
+  iEvent.getByLabel(gctCalibCenJets, GctCalibCenJets);
+
+  for(unsigned int i=0; i<GctCalibCenJets->size(); i++) {
+    std::cout << GctCalibCenJets->at(i).rank() << ", " << GctCalibCenJets->at(i).regionId().ieta() << ", " << GctCalibCenJets->at(i).regionId().iphi() << std::endl;
+  }
+  */
+
+
+  edm::Handle<l1slhc::L1CaloTowerCollection> triggertowers;
+  iEvent.getByLabel("L1CaloTowerProducer", triggertowers);
+
+  // Get gen jet collection
+  edm::Handle<reco::GenJetCollection> hGenJetProduct;
+  edm::InputTag genjetselector("ak4GenJets","","jadtest");
+  //iEvent.getByLabel("ak4GenJets", hGenJetProduct);
+  iEvent.getByLabel(genjetselector, hGenJetProduct);
+  const reco::GenJetCollection * genJetCol = 0;
+  genJetCol = hGenJetProduct.product();
+   
+  for(unsigned int i=0; i < genJetCol->size(); i++) {
+    genjet_pt->Fill((*genJetCol)[i].pt()); //note that there are no eta or ID requirements here (ie neutrinos etc)
+  }
+
+  //get nvertices from simulation
+  edm::Handle<std::vector< PileupSummaryInfo > >  PupInfo;
+  iEvent.getByLabel(edm::InputTag("addPileupInfo"), PupInfo);
+      
+  int NPV=-1;
+      
+  std::vector<PileupSummaryInfo>::const_iterator PVI;
+  for(PVI = PupInfo->begin(); PVI != PupInfo->end(); ++PVI) {
+    int BX = PVI->getBunchCrossing();
+    //std::cout << "bx = " << BX << std::endl;
+    if(BX == 0) {
+      NPV = PVI->getPU_NumInteractions();
+      //std::cout << "NPV = " << NPV << std::endl;
+      break;
+    }
+  }
+
+  // Get genparticles:
+  edm::Handle<reco::GenParticleCollection> genphandle;
+  // For now, hard-code getByLabel
+  iEvent.getByLabel("genParticles", genphandle);
+
+  std::vector<fastjet::PseudoJet> pseudoak4genjetsp;
+  std::vector<fastjet::PseudoJet> ak4genjetsp;
+  
+  for(unsigned int i = 0; i < genphandle->size(); i++) {
+    const reco::GenParticle* p = &((*genphandle)[i]);
+    if ( (p->status() == 1) && p->pt() > 0.0 && abs(p->pdgId()) != 12 && abs(p->pdgId()) != 13 && abs(p->pdgId()) != 14 && abs(p->pdgId()) != 16 && abs(p->eta()) < 3.0) {
+      //std::cout << p->pdgId() << ", " << p->pt() << ", " << g.iEta(p->eta()) << ", " << g.iPhi(p->phi()) << std::endl;
+      fastjet::PseudoJet curPseudoJet;
+      curPseudoJet.reset_PtYPhiM( p->pt(), p->eta(), p->phi(), 0.0); //last argument is mass
+      pseudoak4genjetsp.push_back(curPseudoJet);
+    }
+  }
+    
+  // Handle<l1slhc::L1CaloTowerCollection> offlinetriggertowers;
+  // iEvent.getByLabel("L1OfflineCaloTowerProducer", offlinetriggertowers);
+  // LogInfo("Demo") << "number of L1 offline trigger towers: " << offlinetriggertowers->size();
+  
+  // Handle<CaloTowerCollection> calotowers;
+  // iEvent.getByLabel("towerMaker", calotowers); 
+  // LogInfo("Demo") << "number of calotowers "<< calotowers->size();
+  
+
+
+  std::vector<fastjet::PseudoJet> pseudoak4ttjets;
+  std::vector<fastjet::PseudoJet> ak4ttjets;
+
+  std::vector< std::vector<int> > myarray(56, std::vector<int>(72, 0)); //this is just a container for the (E+H) per tower
+
+  int ntowersinevent=0; //this is a container to calculate the number of non-zero towers in an event (correlation with NPV)
+  std::vector<int> energies_per_event; //this is a container to calculate the median tower energy in an event
+  for(l1slhc::L1CaloTowerCollection::const_iterator j=triggertowers->begin(); j!=triggertowers->end(); j++) {
+
+    if ( abs((*j).iEta()) > 28 ) { continue; } //i.e. |eta| < 3 only
+
+    energies_per_event.push_back((*j).E() + (*j).H()); //for median calculation
+    if((*j).E() + (*j).H() > 0) { ntowersinevent++; } //to look at correlation with NPV
+
+
+    //int newEta = (*j).iEta() + 27;
+    //if((*j).iEta() < 0) { newEta++; }
+    //myarray[newEta][(*j).iPhi() -1] = ((*j).E() + (*j).H()); //iphi is 1-72 --> put on 0-71
+
+    myarray[g.new_iEta((*j).iEta())][g.new_iPhi((*j).iPhi())] = ((*j).E() + (*j).H());
+
+    //so now myarray is on the scale ieta 0-56, iphi 0-71
+    //std::cout << "old: (" << (*j).iEta() << ", " << (*j).iPhi() << ", " << (*j).E() + (*j).H() << ")" << std::endl;
+    //std::cout << "size = " << triggertowers->size() << std::endl;
+    
+    //make ak4TT:
+    fastjet::PseudoJet curPseudoJet;
+    curPseudoJet.reset_PtYPhiM( ((*j).E() + (*j).H()) , g.eta((*j).iEta()), g.phi((*j).iPhi()), 0.0); //last argument is mass
+    pseudoak4ttjets.push_back(curPseudoJet);
+  }
+  
+  ntowers_vs_npv->Fill(ntowersinevent, NPV); //ntowers > 0 in an event
+
+  //now sort and calculate median of energies
+  if(energies_per_event.size() > 0) {
+    std::sort(energies_per_event.begin(), energies_per_event.end()); //sort the vector
+    if(energies_per_event.size() % 2 == 0 ) {
+      int index1 = energies_per_event.size() / 2;
+      median_energy_per_event->Fill((double)(energies_per_event[index1] + energies_per_event[index1+1]) / 2.0);
+    } else {
+      int index1 = (int)energies_per_event.size() / 2;
+      median_energy_per_event->Fill(energies_per_event[index1]);
+    }
+  }
+  
+  
+  //now make the genjetsp collection (clustered based on eta<3 deposits and no muons and neutrinos)
+  this->getJets(pseudoak4genjetsp, ak4genjetsp);
+  //now make the ak4tt collection
+  this->getJets(pseudoak4ttjets, ak4ttjets);
+
+
+  //so at this stage, we have ak4ttjets and ak4genjetsp (and genjets)
+
+  //now, let's try to match the ak4tt jets with the ak4genjetsp and look at two things:
+  //1. The energy correlation
+  //2. The matching efficiency
+  //we use jMatch as an algorithm
+  
+  //make std::vector<jJet> for ak4genjetsp and for ak4tt
+  //std::cout << "ak4genjetsp:" << std::endl;
+  std::vector<jJet> ak4genjetsp_jJet;
+  for(unsigned int i=0; i<ak4genjetsp.size(); i++) {
+    //std::cout << "(" << ak4genjetsp[i].pt() << ", " << g.iEta(ak4genjetsp[i].eta()) << ", " << g.iPhi(ak4genjetsp[i].phi()) << ")" << std::endl;
+    ak4genjetsp_jJet.push_back(jJet(ak4genjetsp[i].pt(), g.iEta(ak4genjetsp[i].eta()), g.iPhi(ak4genjetsp[i].phi())));
+    //genjet_pt_nomunu->Fill(ak4genjetsp[i].pt());
+    //genjet_eta_nomunu->Fill(g.iEta(ak4genjetsp[i].eta()));
+    //if(i == 0) { jet1_genjet_pt_nomunu->Fill(ak4genjetsp[i].pt()); }
+    //if(i == 1) { jet2_genjet_pt_nomunu->Fill(ak4genjetsp[i].pt()); }
+    //if(i == 2) { jet3_genjet_pt_nomunu->Fill(ak4genjetsp[i].pt()); }
+    //if(i == 3) { jet4_genjet_pt_nomunu->Fill(ak4genjetsp[i].pt()); }
+  }
+
+  std::vector<int> minDR2genp;
+  if(ak4genjetsp_jJet.size()>0) {
+    minDR2genp = closestJetDistance(ak4genjetsp_jJet);
+    for(unsigned int i=0; i<ak4genjetsp_jJet.size(); i++) {
+      if(minDR2genp[i] > 35) {
+    	genjet_pt_nomunu_far->Fill(ak4genjetsp_jJet[i].pt());
+      }
+    }
+  }
+  
+
+  //std::cout << "ak4tt:" << std::endl;
+  std::vector<jJet> ak4tt_jJet;
+  for(unsigned int i=0; i<ak4ttjets.size(); i++) {
+    //std::cout << "(" << ak4ttjets[i].pt() << ", " << g.iEta(ak4ttjets[i].eta()) << ", " << g.iPhi(ak4ttjets[i].phi()) << ")" << std::endl;
+    ak4tt_jJet.push_back(jJet(ak4ttjets[i].pt(), g.iEta(ak4ttjets[i].eta()), g.iPhi(ak4ttjets[i].phi())));
+    //ak4tt_pt->Fill(ak4ttjets[i].pt());
+    //if(i == 0) { jet1_ak4tt_pt->Fill(ak4ttjets[i].pt()); jet1_ak4tt_eta->Fill(g.new_iEta(g.iEta(ak4ttjets[i].eta()))); }
+    //if(i == 1) { jet2_ak4tt_pt->Fill(ak4ttjets[i].pt()); jet2_ak4tt_eta->Fill(g.new_iEta(g.iEta(ak4ttjets[i].eta()))); }
+    //if(i == 2) { jet3_ak4tt_pt->Fill(ak4ttjets[i].pt()); jet3_ak4tt_eta->Fill(g.new_iEta(g.iEta(ak4ttjets[i].eta()))); }
+    //if(i == 3) { jet4_ak4tt_pt->Fill(ak4ttjets[i].pt()); jet4_ak4tt_eta->Fill(g.new_iEta(g.iEta(ak4ttjets[i].eta()))); }    
+  }
+
+  /*
+  pairs = make_pairs(ak4tt_jJet, ak4genjetsp_jJet);
+  std::sort(pairs.begin(), pairs.end(), sortDR);
+  std::vector<int> ak4genjetsp_ak4tt_matched_index = analyse_pairs(pairs, ak4genjetsp_jJet.size(), 16);
+
+  //think about improving analyse_pairs to somehow be able to return pair 1 <--> pair2 i.e. both matched lists
+
+  for(unsigned int i=0; i<ak4genjetsp_ak4tt_matched_index.size(); i++) {
+    //std::cout << "ak4genjetp with index " << i << " is matched to ak4ttjet with index " << ak4tt_matched_index[i] << std::endl;
+    if(ak4genjetsp_ak4tt_matched_index[i] != -1) {
+      genjet_pt_nomunu_match_ak4tt->Fill(ak4genjetsp_jJet[i].pt());
+      genjet_eta_nomunu_match_ak4tt->Fill(ak4genjetsp_jJet[i].iEta());
+      ak4tt_vs_genjetpt->Fill(ak4tt_jJet[ak4genjetsp_ak4tt_matched_index[i]].pt(), ak4genjetsp_jJet[i].pt());
+      if(i == 0) { jet1_genjet_pt_nomunu_match_ak4tt->Fill(ak4genjetsp_jJet[i].pt()); }
+      if(i == 1) { jet2_genjet_pt_nomunu_match_ak4tt->Fill(ak4genjetsp_jJet[i].pt()); }
+      if(i == 2) { jet3_genjet_pt_nomunu_match_ak4tt->Fill(ak4genjetsp_jJet[i].pt()); }
+      if(i == 3) { jet4_genjet_pt_nomunu_match_ak4tt->Fill(ak4genjetsp_jJet[i].pt()); }
+    }
+  }
+*/
+  this->compareJetCollections(ak4tt_jJet, ak4genjetsp_jJet, "ak4tt_ak4genjetsp");
+
+  //printOneEvent(triggertowers, ak4ttjets, genJetCol, ak4genjetsp);
+
+  //this block of code looks at the closest point of approach of two jets in the event
+  //if(ak5ttjets.size()>1) {
+  //  int mindr2=999;
+  //  for(unsigned int ajet=0; ajet < ak5ttjets.size()-1; ajet++) {
+  //    //int newEtaIndex1 = g.iEta(ak5ttjets[ajet].eta()) + 27;
+  //    //if(g.iEta(ak5ttjets[ajet].eta()) < 0) { newEtaIndex1++; }
+  //    //int newPhiIndex1 = g.iPhi(ak5ttjets[ajet].phi()) - 1;
+  //    int newEtaIndex1 = g.new_iEta(g.iEta(ak5ttjets[ajet].eta()));
+  //    int newPhiIndex1 = g.new_iPhi(g.iPhi(ak5ttjets[ajet].phi()));
+  //    for(unsigned int bjet=ajet+1; bjet < ak5ttjets.size(); bjet++) {
+  //      int newEtaIndex2 = g.iEta(ak5ttjets[bjet].eta()) + 27;
+  //      if(g.iEta(ak5ttjets[bjet].eta()) < 0) { newEtaIndex2++; }
+  //      int newPhiIndex2 = g.iPhi(ak5ttjets[bjet].phi()) - 1;
+  //      int deltaPhi = abs(newPhiIndex1 - newPhiIndex2);
+  //      if( deltaPhi > 36) {
+  //        deltaPhi = 72 - deltaPhi;
+  //      }
+  //	int deltaR = ((newEtaIndex1 - newEtaIndex2) * (newEtaIndex1 - newEtaIndex2)) + (deltaPhi * deltaPhi);
+  //	if(deltaR < mindr2) { mindr2 = deltaR; }
+  //    }
+  //  }
+  //  smallest_dist_ak4jets->Fill(mindr2);
+  //}
+  
+
+
+  //std::vector<std::pair<int, int> > localmax; //to store the co-ordinates of the local max and then to compute smallest distance in an event
+  // std::vector<jJet> localmax_energies; //to store the energies -- should really be combined with the above co-ordinates...
+  // std::vector<jJet> localmax_energies_PUSub1; //to store the energies -- should really be combined with the above co-ordinates...
+   //std::cout << "starting..." << std::endl;
+
+   //make a container for the L1 jets
+   std::vector<jJet> L1_jJet;
+   std::vector<jJet> L1donut_jJet;
+
+   L1_jJet = getL1Jets(myarray, 4, 3, 0, 0);
+   L1donut_jJet = L1_jJet;
+
+   /*
+   for ( unsigned int i = 0; i < myarray.size(); i++) {
+     for ( unsigned int j = 0; j < myarray[i].size(); j++) {
+       //std::cout << "new: (" << i << ", " << j << ", " << myarray[i][j] << ")" << std::endl; 
+       int localsum=0;    int area=0;
+       int localsum_r1=0; int area_r1=0;
+       int localsum_r2=0; int area_r2=0;
+       int localsum_r3=0; int area_r3=0;
+       int localsum_r4=0; int area_r4=0;
+       int numtowersaboveme=0;
+       int numtowersabovethresh=0;
+       int seedthresh1=0;//5; //this is on the central tower
+       int seedthresh2=0; //this is on the towers surrounding the central tower
+
+       for(int k=(int)i-4; k<=(int)i+4; k++) {
+	 for(int l=(int)j-4; l<=(int)j+4; l++) {
+	   if(k < 0 || k > 55) continue;
+	   //if(k == l) continue;
+	   //std::cout << " k = " << k << ", l = " << l << ", i =" << i << ", j = " << j << std::endl;
+	   if(l < 0) {
+	     localsum += myarray[k][l+72];
+	     area += 1;
+	     if((abs(i-k) == 1 && abs(j-l) <= 1) || (abs(i-k) <=1 && abs(j-l) == 1)) { localsum_r1 += myarray[k][l+72]; area_r1 += 1; }
+	     if((abs(i-k) == 2 && abs(j-l) <= 2) || (abs(i-k) <=2 && abs(j-l) == 2)) { localsum_r2 += myarray[k][l+72]; area_r2 += 1; }
+	     if((abs(i-k) == 3 && abs(j-l) <= 3) || (abs(i-k) <=3 && abs(j-l) == 3)) { localsum_r3 += myarray[k][l+72]; area_r3 += 1; }
+	     if((abs(i-k) == 4 && abs(j-l) <= 4) || (abs(i-k) <=4 && abs(j-l) == 4)) { localsum_r4 += myarray[k][l+72]; area_r4 += 1; }
+
+	     if(myarray[k][l+72] > seedthresh2) { numtowersabovethresh++; }
+	     //in this configuration, where l<0, j can never be <0, so no need to check if it is comparing with itself
+	     //std::cout << "k+l = " << k+l << ", i+j = " << i+j << " myarray[k][l+72] = " << myarray[k][l+72] << " myarray[i][j] = " << myarray[i][j] << std::endl;
+	     if(abs(i-k) != 4 && abs(j-l) != 4) { //i.e. limit the vetoing to the first 3 rings
+	       if(k+l > (int)(i+j)) { if(myarray[k][l+72] > myarray[i][j]) { numtowersaboveme++; } }
+	       else if( ((k+l) == (int)(i+j)) && k-(int)i > l-(int)j) { if(myarray[k][l+72] > myarray[i][j]) { numtowersaboveme++; } } //this line is to break the degeneracy along the diagonal treating top left different to bottom right
+	       else { if(myarray[k][l+72] >= myarray[i][j]) { numtowersaboveme++; } }
+	     }
+
+	   } else if(l > 71) {
+	     localsum += myarray[k][l-72];
+	     area += 1;
+	     if((abs(i-k) == 1 && abs(j-l) <= 1) || (abs(i-k) <=1 && abs(j-l) == 1)) { localsum_r1 += myarray[k][l-72]; area_r1 += 1; }
+	     if((abs(i-k) == 2 && abs(j-l) <= 2) || (abs(i-k) <=2 && abs(j-l) == 2)) { localsum_r2 += myarray[k][l-72]; area_r2 += 1; }
+	     if((abs(i-k) == 3 && abs(j-l) <= 3) || (abs(i-k) <=3 && abs(j-l) == 3)) { localsum_r3 += myarray[k][l-72]; area_r3 += 1; }
+	     if((abs(i-k) == 4 && abs(j-l) <= 4) || (abs(i-k) <=4 && abs(j-l) == 4)) { localsum_r4 += myarray[k][l-72]; area_r4 += 1; }
+	     if(myarray[k][l-72] > seedthresh2) { numtowersabovethresh++; }
+	     //in this configuration, where l>71, j can never be >71, so no need to check if it is comparing with itself
+	     //std::cout << "k+l = " << k+l << ", i+j = " << i+j << " myarray[k][l-72] = " << myarray[k][l-72] << " myarray[i][j] = " << myarray[i][j] << std::endl;
+	     if(abs(i-k) != 4 && abs(j-l) != 4) { //i.e. limit the vetoing to the first 3 rings
+	       if(k+l > (int)(i+j)) { if(myarray[k][l-72] > myarray[i][j]) { numtowersaboveme++; } }
+	       else if( ((k+l) == (int)(i+j)) && k-(int)i > l-(int)j) { if(myarray[k][l-72] > myarray[i][j]) { numtowersaboveme++; } } //this line is to break the degeneracy along the diagonal treating top left different to bottom right
+	       else { if(myarray[k][l-72] >= myarray[i][j]) { numtowersaboveme++; } }
+	     }
+	   } else {
+	     localsum += myarray[k][l];
+	     area += 1;
+	     if((abs(i-k) == 1 && abs(j-l) <= 1) || (abs(i-k) <=1 && abs(j-l) == 1)) { localsum_r1 += myarray[k][l]; area_r1 += 1; }
+	     if((abs(i-k) == 2 && abs(j-l) <= 2) || (abs(i-k) <=2 && abs(j-l) == 2)) { localsum_r2 += myarray[k][l]; area_r2 += 1; }
+	     if((abs(i-k) == 3 && abs(j-l) <= 3) || (abs(i-k) <=3 && abs(j-l) == 3)) { localsum_r3 += myarray[k][l]; area_r3 += 1; }
+	     if((abs(i-k) == 4 && abs(j-l) <= 4) || (abs(i-k) <=4 && abs(j-l) == 4)) { localsum_r4 += myarray[k][l]; area_r4 += 1; }
+	     if(myarray[k][l] > seedthresh2) { numtowersabovethresh++; }
+	     //std::cout << "k+l = " << k+l << ", i+j = " << i+j << " myarray[k][l] = " << myarray[k][l] << " myarray[i][j] = " << myarray[i][j] << std::endl;
+	     if(abs(i-k) != 4 && abs(j-l) != 4) { //i.e. limit the vetoing to the first 3 rings
+	       if(k != (int)i || l != (int)j) { //i.e. don't compare with myself
+		 if(k+l > (int)(i+j) ) { if(myarray[k][l] > myarray[i][j]) { numtowersaboveme++; } }
+		 else if( ((k+l) == (int)(i+j)) && k-(int)i > l-(int)j) { if(myarray[k][l] > myarray[i][j]) { numtowersaboveme++; } } //this line is to break the degeneracy along the diagonal treating top left different to bottom right
+		 else { if(myarray[k][l] >= myarray[i][j]) { numtowersaboveme++; } }
+	       }
+	     }
+	   }
+
+	 }
+       }
+
+       //if we wanted to turn the above into a standalone function with parameters (e.g. seedthres1, 2 etc) then we would need to return an object
+       //of localsum + _r1-_r4 + areas
+       //and then it would be a post-processing step to construct the jet (and any possible combination of it)
+
+       //now we have the L1 jet candidate:
+       if(numtowersaboveme == 0 && myarray[i][j] > seedthresh1) {
+	 //this means we have a viable candidate
+	 L1_jJet.push_back(jJet(localsum, g.old_iEta(i), g.old_iPhi(j), localsum_r3, localsum_r4));
+	 //double donut_energy = localsum - ( (1.0 + ( (double)(area - area_r4) / (double)area_r4) ) * localsum_r4); //"1.0 +" to remove the r4 added into the localsum
+	 double donut_energy = localsum;
+	 if(donut_energy > 0.0) {
+	   L1donut_jJet.push_back(jJet(donut_energy, g.old_iEta(i), g.old_iPhi(j) ) );
+	 }
+
+	 //now look at correlation between total energy and ring energy for jets which survive
+	 ET_TT_vs_ET_r1->Fill(localsum, (double)localsum_r1/(double)localsum);
+	 ET_TT_vs_ET_r2->Fill(localsum, (double)localsum_r2/(double)localsum);
+	 ET_TT_vs_ET_r3->Fill(localsum, (double)localsum_r3/(double)localsum);
+	 ET_TT_vs_ET_r4->Fill(localsum, (double)localsum_r4/(double)localsum);
+       }
+
+     }
+   }
+   */
+
+   std::sort(L1_jJet.begin(), L1_jJet.end(), sortbypt);
+   std::sort(L1donut_jJet.begin(), L1donut_jJet.end(), sortbypt);
+
+   //now can populate leading/subleading localmax
+   for(unsigned int le =0; le < L1_jJet.size(); le++) {
+     if(le == 0) { jet1_localmax_pt->Fill(L1_jJet[le].pt()); jet1_localmax_eta->Fill(g.new_iEta(L1_jJet[le].iEta())); }
+     if(le == 1) { jet2_localmax_pt->Fill(L1_jJet[le].pt()); jet2_localmax_eta->Fill(g.new_iEta(L1_jJet[le].iEta())); }
+     if(le == 2) { jet3_localmax_pt->Fill(L1_jJet[le].pt()); jet3_localmax_eta->Fill(g.new_iEta(L1_jJet[le].iEta())); }
+     if(le == 3) { jet4_localmax_pt->Fill(L1_jJet[le].pt()); jet4_localmax_eta->Fill(g.new_iEta(L1_jJet[le].iEta())); }
+   }
+
+   //now can populate leading/subleading localmax-PUSub1
+   for(unsigned int le =0; le< L1donut_jJet.size(); le++) {
+     if(le == 0) { jet1PUSub1_localmax_pt->Fill(L1donut_jJet[le].pt()); }
+     if(le == 1) { jet2PUSub1_localmax_pt->Fill(L1donut_jJet[le].pt()); }
+     if(le == 2) { jet3PUSub1_localmax_pt->Fill(L1donut_jJet[le].pt()); }
+     if(le == 3) { jet4PUSub1_localmax_pt->Fill(L1donut_jJet[le].pt()); }
+  } 
+
+
+
+   pairs = make_pairs(L1_jJet, ak4genjetsp_jJet);
+   std::sort(pairs.begin(), pairs.end(), sortDR);
+   std::vector<int> ak4genjetsp_L1_matched_index = analyse_pairs(pairs, ak4genjetsp_jJet.size(), 16);
+
+   //think about improving analyse_pairs to somehow be able to return pair 1 <--> pair2 i.e. both matched lists
+   //double scale=0.5;
+   
+   for(unsigned int i=0; i<ak4genjetsp_L1_matched_index.size(); i++) {
+     if(ak4genjetsp_L1_matched_index[i] != -1) {
+       genjet_pt_nomunu_match_L1->Fill(ak4genjetsp_jJet[i].pt());
+       genjet_eta_nomunu_match_L1->Fill(ak4genjetsp_jJet[i].iEta());
+       if(i == 0) { jet1_genjet_pt_nomunu_match_L1->Fill(ak4genjetsp_jJet[i].pt()); }
+       if(i == 1) { jet2_genjet_pt_nomunu_match_L1->Fill(ak4genjetsp_jJet[i].pt()); }
+       if(i == 2) { jet3_genjet_pt_nomunu_match_L1->Fill(ak4genjetsp_jJet[i].pt()); }
+       if(i == 3) { jet4_genjet_pt_nomunu_match_L1->Fill(ak4genjetsp_jJet[i].pt()); }
+
+       L1_vs_genjetpt->Fill(L1_jJet[ak4genjetsp_L1_matched_index[i]].pt(), ak4genjetsp_jJet[i].pt());       
+       if(ak4genjetsp_jJet[i].pt() > 30.0 && ak4genjetsp_jJet[i].pt() < 50.0) {
+	 if(abs(ak4genjetsp_jJet[i].iEta()) < 10 && abs(ak4genjetsp_jJet[i].iEta()) >= 0) {
+	   deltaGenL1_pT3050_eta1_v1->Fill((ak4genjetsp_jJet[i].pt() - L1_jJet[ak4genjetsp_L1_matched_index[i]].pt()) / ak4genjetsp_jJet[i].pt(), NPV);
+	 } else if(abs(ak4genjetsp_jJet[i].iEta()) < 20 && abs(ak4genjetsp_jJet[i].iEta()) >= 10) {
+	   deltaGenL1_pT3050_eta2_v1->Fill((ak4genjetsp_jJet[i].pt() - L1_jJet[ak4genjetsp_L1_matched_index[i]].pt()) / ak4genjetsp_jJet[i].pt(), NPV);
+	 } else if(abs(ak4genjetsp_jJet[i].iEta()) < 30 && abs(ak4genjetsp_jJet[i].iEta()) >= 20) {
+	   deltaGenL1_pT3050_eta3_v1->Fill((ak4genjetsp_jJet[i].pt() - L1_jJet[ak4genjetsp_L1_matched_index[i]].pt()) / ak4genjetsp_jJet[i].pt(), NPV);
+	 }
+       }
+
+       if(minDR2genp[i] > 35) {
+       	 genjet_pt_nomunu_far_match_L1->Fill(ak4genjetsp_jJet[i].pt());
+       }
+
+       if(ak4genjetsp_jJet[i].pt() < 100.0 && ak4genjetsp_jJet[i].pt() > 80.0) {
+	 if(abs(ak4genjetsp_jJet[i].iEta()) >= 0 && abs(ak4genjetsp_jJet[i].iEta()) < 10) { r4_vs_npv_eta1_pt80100->Fill(L1_jJet[ak4genjetsp_L1_matched_index[i]].PUE(), NPV); }
+	 if(abs(ak4genjetsp_jJet[i].iEta()) >= 10 && abs(ak4genjetsp_jJet[i].iEta()) < 20) { r4_vs_npv_eta2_pt80100->Fill(L1_jJet[ak4genjetsp_L1_matched_index[i]].PUE(), NPV); }
+	 if(abs(ak4genjetsp_jJet[i].iEta()) >= 20 && abs(ak4genjetsp_jJet[i].iEta()) < 30) { r4_vs_npv_eta3_pt80100->Fill(L1_jJet[ak4genjetsp_L1_matched_index[i]].PUE(), NPV); }
+       }
+       if(ak4genjetsp_jJet[i].pt() < 50.0 && ak4genjetsp_jJet[i].pt() > 30.0) {
+	 if(abs(ak4genjetsp_jJet[i].iEta()) >= 0 && abs(ak4genjetsp_jJet[i].iEta()) < 10) { r4_vs_npv_eta1_pt3050->Fill(L1_jJet[ak4genjetsp_L1_matched_index[i]].PUE(), NPV); }
+	 if(abs(ak4genjetsp_jJet[i].iEta()) >= 10 && abs(ak4genjetsp_jJet[i].iEta()) < 20) { r4_vs_npv_eta2_pt3050->Fill(L1_jJet[ak4genjetsp_L1_matched_index[i]].PUE(), NPV); }
+	 if(abs(ak4genjetsp_jJet[i].iEta()) >= 20 && abs(ak4genjetsp_jJet[i].iEta()) < 30) { r4_vs_npv_eta3_pt3050->Fill(L1_jJet[ak4genjetsp_L1_matched_index[i]].PUE(), NPV); }
+       }
+
+       /*
+       //check the size of the closest gen-jet to this gen-jet
+       int minDR2gen = 999;
+       for(unsigned int gj=0; gj<ak4genjetsp_jJet.size(); gj++) {
+	 int deltaR2gen = ak4genjetsp_jJet[i].DeltaR2(ak4genjetsp_jJet[gj]);
+	 if(i != gj && deltaR2gen < minDR2gen) { minDR2gen = deltaR2gen; }
+       }
+       if(minDR2gen != 999) {
+
+	 if(minDR2gen > 20) {
+	   if(ak4genjetsp_jJet[i].pt() < 100.0 && ak4genjetsp_jJet[i].pt() > 75.0) {
+	     if(abs(ak4genjetsp_jJet[i].iEta()) >= 0 && abs(ak4genjetsp_jJet[i].iEta()) < 10) { r4_vs_npv_eta1_pt3050_far->Fill(L1_jJet[ak4genjetsp_L1_matched_index[i]].R4(), NPV); }
+	     if(abs(ak4genjetsp_jJet[i].iEta()) >= 10 && abs(ak4genjetsp_jJet[i].iEta()) < 20) { r4_vs_npv_eta2_pt3050_far->Fill(L1_jJet[ak4genjetsp_L1_matched_index[i]].R4(), NPV); }
+	     if(abs(ak4genjetsp_jJet[i].iEta()) >= 20 && abs(ak4genjetsp_jJet[i].iEta()) < 30) { r4_vs_npv_eta3_pt3050_far->Fill(L1_jJet[ak4genjetsp_L1_matched_index[i]].R4(), NPV); }
+	   }
+	 } else {
+	   if(ak4genjetsp_jJet[i].pt() < 100.0 && ak4genjetsp_jJet[i].pt() > 75.0) {
+	     if(abs(ak4genjetsp_jJet[i].iEta()) >= 0 && abs(ak4genjetsp_jJet[i].iEta()) < 10) { r4_vs_npv_eta1_pt3050_near->Fill(L1_jJet[ak4genjetsp_L1_matched_index[i]].R4(), NPV); }
+	     if(abs(ak4genjetsp_jJet[i].iEta()) >= 10 && abs(ak4genjetsp_jJet[i].iEta()) < 20) { r4_vs_npv_eta2_pt3050_near->Fill(L1_jJet[ak4genjetsp_L1_matched_index[i]].R4(), NPV); }
+	     if(abs(ak4genjetsp_jJet[i].iEta()) >= 20 && abs(ak4genjetsp_jJet[i].iEta()) < 30) { r4_vs_npv_eta3_pt3050_near->Fill(L1_jJet[ak4genjetsp_L1_matched_index[i]].R4(), NPV); }
+	   }
+	 }
+
+       }
+*/
+     } else {
+       //else , we have genjets not matched
+       //check energy of genjet that's not matched. if above threshold, plot event and let's investigate
+       //if(ak4genjetsp_jJet[i].pt() > 50.0 && minDR2genp[i] > 35) {
+       //  std::cout << "triggered at event " << mEventNumber << ", pT " << ak4genjetsp_jJet[i].pt() << std::endl;
+       //  printOneEvent(triggertowers, L1_jJet, ak4ttjets, genJetCol, ak4genjetsp);
+       //}
+     }
+   }
+
+   //now do the same for the L1donut jets -- PUsub can kill some jets potentially...
+   pairs = make_pairs(L1donut_jJet, ak4genjetsp_jJet);
+   std::sort(pairs.begin(), pairs.end(), sortDR);
+   std::vector<int> ak4genjetsp_L1donut_matched_index = analyse_pairs(pairs, ak4genjetsp_jJet.size(), 16);
+
+   for(unsigned int i=0; i<ak4genjetsp_L1donut_matched_index.size(); i++) {
+     if(ak4genjetsp_L1donut_matched_index[i] != -1) {
+       genjet_pt_nomunu_match_L1donut->Fill(ak4genjetsp_jJet[i].pt());
+       L1donut_vs_genjetpt->Fill(L1donut_jJet[ak4genjetsp_L1donut_matched_index[i]].pt(), ak4genjetsp_jJet[i].pt()); //we can do this because we have a guarantee that L1_jJet & L1donut_jJet are the same size/position
+       if(ak4genjetsp_jJet[i].pt() > 30.0 && ak4genjetsp_jJet[i].pt() < 50.0) {
+	 if(abs(ak4genjetsp_jJet[i].iEta()) < 10 && abs(ak4genjetsp_jJet[i].iEta()) >= 0) {
+	   deltaGenL1_pT3050_eta1_v4->Fill((ak4genjetsp_jJet[i].pt() - L1donut_jJet[ak4genjetsp_L1donut_matched_index[i]].pt()) / ak4genjetsp_jJet[i].pt(), NPV);
+	 } else if(abs(ak4genjetsp_jJet[i].iEta()) < 20 && abs(ak4genjetsp_jJet[i].iEta()) >= 10) {
+	   deltaGenL1_pT3050_eta2_v4->Fill((ak4genjetsp_jJet[i].pt() - L1donut_jJet[ak4genjetsp_L1donut_matched_index[i]].pt()) / ak4genjetsp_jJet[i].pt(), NPV);
+	 } else if(abs(ak4genjetsp_jJet[i].iEta()) < 30 && abs(ak4genjetsp_jJet[i].iEta()) >= 20) {
+	   deltaGenL1_pT3050_eta3_v4->Fill((ak4genjetsp_jJet[i].pt() - L1donut_jJet[ak4genjetsp_L1donut_matched_index[i]].pt()) / ak4genjetsp_jJet[i].pt(), NPV);
+	 }
+       }
+
+     } //else , we have genjets not matched
+   }   
+
+
+   //now compare the L1 jets to ak4tt jets
+
+   pairs = make_pairs(L1_jJet, ak4tt_jJet);
+   std::sort(pairs.begin(), pairs.end(), sortDR);
+   std::vector<int> ak4ttjets_L1_matched_index = analyse_pairs(pairs, ak4tt_jJet.size(), 16);
+   for(unsigned int i=0; i < ak4ttjets_L1_matched_index.size(); i++) {
+     if(ak4ttjets_L1_matched_index[i] != -1) {
+       ak4tt_pt_match_L1->Fill(ak4tt_jJet[i].pt());
+       if(i == 0) { jet1_ak4tt_pt_match_L1->Fill(ak4tt_jJet[i].pt()); }
+       if(i == 1) { jet2_ak4tt_pt_match_L1->Fill(ak4tt_jJet[i].pt()); }
+       if(i == 2) { jet3_ak4tt_pt_match_L1->Fill(ak4tt_jJet[i].pt()); }
+       if(i == 3) { jet4_ak4tt_pt_match_L1->Fill(ak4tt_jJet[i].pt()); }
+       L1_vs_ak4tt->Fill(L1_jJet[ak4ttjets_L1_matched_index[i]].pt(), ak4tt_jJet[i].pt());
+     }
+   }
+
+
+
+   /*
+
+
+
+
+
+
+
+ //BLOCK START
+
+       if(numtowersaboveme == 0 && myarray[i][j] > seedthresh1) {
+	 //if(mEventNumber == 2) { std::cout << "pushing back (" << i << ", " << j << ")" << std::endl; }
+	 localmax.push_back(std::make_pair(i,j));
+	 localmax_energies.push_back(jJet(localsum, i, j));
+	 localmax_energies_PUSub1.push_back(jJet(localsum - 2.53125*localsum_r4, i, j));
+	 int minDR=999;
+	 double ak4ttptmatch=0.0;
+	   //now loop over the ak4tt (not genjet) collection and fill pT if there is a match
+	   for(unsigned int ajet=0; ajet < ak4ttjets.size(); ajet++) {
+	     int newEtaIndex = g.iEta(ak4ttjets[ajet].eta()) + 27;
+	     if(g.iEta(ak4ttjets[ajet].eta()) < 0) { newEtaIndex++; }
+	     int newPhiIndex = g.iPhi(ak4ttjets[ajet].phi()) - 1;
+	     //std::cout << "newPhiIndex = " << newPhiIndex <<", j = " << j << std::endl;
+	     int deltaPhi = abs(j - newPhiIndex);
+	     if( deltaPhi > 36) {
+	       deltaPhi = 72 - deltaPhi;
+	     }
+	     int deltaR = ((i - newEtaIndex) * (i - newEtaIndex)) + (deltaPhi * deltaPhi);//((j - newPhiIndex) * (j - newPhiIndex));
+	     //std::cout << "distance_b: " << deltaR << " with jet " << ak4ttjets[ajet].pt() << std::endl;
+	     if(deltaR <= 10) {
+	       if(deltaR < minDR) {
+		 minDR = deltaR;
+		 ak4ttptmatch = ak4ttjets[ajet].pt();
+	       }	       
+	     }
+	   }
+
+	   if(minDR != 999) {
+	     ak4tt_pt_match->Fill(ak4ttptmatch); //to test if the ak4tt jets find a match, divide by ak4tt_pt
+	     towermax_vs_ak4tt->Fill(localsum, ak4ttptmatch);
+	   } else {
+	     towermax_unmatched_ak4tt->Fill(localsum);
+	   }
+	   
+	   //towermax_matchedtoak4tt->Fill(ismatch); //to get an idea of the lost localmax
+	   //if(ismatch == 0) {
+	     //towermax_unmatched->Fill(localsum); //to get an idea of the pT of the lost localmax
+	     //printOneEvent(triggertowers, ak4ttjets, genJetCol, ak4genjetsp); 
+	   //}
+	
+       }
+
+
+ // BLOCK END
+
+
+
+
+
+
+
+
+
+
+
+
+
+   //std::cout << "finished populating loop" << std::endl;
+
+   //now check for smallest distance between all local maxima in the event
+   int smallest_dist=999;
+   if(localmax.size() > 1) { //there has to be at least 2 to compare distances
+     for(unsigned int dist1=0 ; dist1<localmax.size()-1; dist1++) {
+       for(unsigned int dist2=dist1+1; dist2<localmax.size(); dist2++) {
+	 int eta1 = localmax[dist1].first;
+	 int phi1 = localmax[dist1].second;
+	 int eta2 = localmax[dist2].first;
+	 int phi2 = localmax[dist2].second;
+	 int deltaPhi = abs(phi1 - phi2);
+	 if(deltaPhi > 36) { deltaPhi = 72 - deltaPhi; }
+	 int deltaR2 = ((eta1 - eta2)*(eta1 - eta2)) + (deltaPhi*deltaPhi);// ((phi1 - phi2)*(phi1 - phi2));
+	 //if(mEventNumber == 14) {
+	 //  std::cout << "(" << eta1 << ", " << phi1 << ") vs " << eta2 << ", " << phi2 << ")" << std::endl;
+	 //    std::cout << "deltaEta^2 = " << (eta1 - eta2)*(eta1 - eta2) << ", deltaPhi^2 = " << deltaPhi*deltaPhi << ", deltaR^2 = " << deltaR2 << std::endl; 
+	 //}
+	 if(deltaR2 < smallest_dist) { smallest_dist = deltaR2; }
+       }
+     }
+     //if(smallest_dist == 1) { std::cout << mEventNumber << std::endl; }
+     smallest_dist_localmax->Fill(smallest_dist);
+   }
+
+   //if(mEventNumber == 2) { 
+   //std::cout << "smallest distance = " << smallest_dist << std::endl; 
+   //}
+
+   //if(smallest_dist == 1) { std::cout << mEventNumber << std::endl; }
+
+
+   */
+   //printOneEvent(triggertowers, L1_jJet, ak4ttjets, genJetCol, ak4genjetsp);
+   mEventNumber++;
+   //std::cout << "reached end of event loop" << std::endl;
+}
+
+
+// ------------ method called once each job just before starting event loop  ------------
+void 
+CaloTowerAnalyser::beginJob()
+{
+}
+
+// ------------ method called once each job just after ending the event loop  ------------
+void 
+CaloTowerAnalyser::endJob() 
+{
+}
+
+// ------------ method called when starting to processes a run  ------------
+/*
+void 
+CaloTowerAnalyser::beginRun(edm::Run const&, edm::EventSetup const&)
+{
+}
+*/
+
+// ------------ method called when ending the processing of a run  ------------
+/*
+void 
+CaloTowerAnalyser::endRun(edm::Run const&, edm::EventSetup const&)
+{
+}
+*/
+
+// ------------ method called when starting to processes a luminosity block  ------------
+/*
+void 
+CaloTowerAnalyser::beginLuminosityBlock(edm::LuminosityBlock const&, edm::EventSetup const&)
+{
+}
+*/
+
+// ------------ method called when ending the processing of a luminosity block  ------------
+/*
+void 
+CaloTowerAnalyser::endLuminosityBlock(edm::LuminosityBlock const&, edm::EventSetup const&)
+{
+}
+*/
+
+// ------------ method fills 'descriptions' with the allowed parameters for the module  ------------
+void
+CaloTowerAnalyser::fillDescriptions(edm::ConfigurationDescriptions& descriptions) {
+  //The following says we do not know what parameters are allowed so do no validation
+  // Please change this to state exactly what you do use, even if it is no parameters
+  edm::ParameterSetDescription desc;
+  desc.setUnknown();
+  descriptions.addDefault(desc);
+}
+
+//define this as a plug-in
+DEFINE_FWK_MODULE(CaloTowerAnalyser);
