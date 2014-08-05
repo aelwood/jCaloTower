@@ -47,36 +47,38 @@ void CaloTowerAnalyser::MakeJetTree(const std::vector<jJet> & col1, const std::v
     tree->Branch("jetTowerEnergyUp8_"+TString(folderName), "std::vector<int>", &jetTowerEnergyUp8_[folderName+"_jet"]);
 
     pMade[folderName+"_jet"]=true;
-    for (unsigned int i = 0; i  != col1.at(0).getOuterStrips().size(); i++)
-    {
-      std::string s = std::to_string(i);
-      jetOuterStripsArea_[folderName+"_jet_"+s]= new std::vector<Float_t>();
-      jetOuterStripsEnergy_[folderName+"_jet_"+s]= new std::vector<Float_t>();
-      tree->Branch("jetOuterStripsEnergy_"+s+"_"+TString(folderName), "std::vector<float>", &jetOuterStripsEnergy_[folderName+"_jet_"+s]);
-      tree->Branch("jetOuterStripsArea_"+s+"_"+TString(folderName), "std::vector<float>", &jetOuterStripsArea_[folderName+"_jet_"+s]);
-    } 
-    for (unsigned int i = 0; i  != col1.at(0).ringSums().size(); i++)
-    {
-      std::string s = std::to_string(i);
-      jetRingSumsArea_[folderName+"_jet_"+s]= new std::vector<Float_t>();
-      jetRingSumsEnergy_[folderName+"_jet_"+s]= new std::vector<Float_t>();
-      jetRingSumsHighest_[folderName+"_jet_"+s]= new std::vector<Float_t>();
-      tree->Branch("jetRingSumsEnergy_"+s+"_"+TString(folderName), "std::vector<float>", &jetRingSumsEnergy_[folderName+"_jet_"+s]);
-      tree->Branch("jetRingSumsHighest_"+s+"_"+TString(folderName), "std::vector<float>", &jetRingSumsHighest_[folderName+"_jet_"+s]);
-      tree->Branch("jetRingSumsArea_"+s+"_"+TString(folderName), "std::vector<float>", &jetRingSumsArea_[folderName+"_jet_"+s]);
-    } 
-    for (unsigned int i = 0; i  != col1.at(0).ringSumsEC().size(); i++)
-    {
-      std::string s = std::to_string(i);
-      jetRingSumsECAL_[folderName+"_jet_"+s]= new std::vector<Float_t>();
-      tree->Branch("jetRingSumsECAL_"+s+"_"+TString(folderName), "std::vector<float>", &jetRingSumsECAL_[folderName+"_jet_"+s]);
-    } 
-    for (unsigned int i = 0; i  != col1.at(0).ringSumsHC().size(); i++)
-    {
-      std::string s = std::to_string(i);
-      jetRingSumsHCAL_[folderName+"_jet_"+s]= new std::vector<Float_t>();
-      tree->Branch("jetRingSumsHCAL_"+s+"_"+TString(folderName), "std::vector<float>", &jetRingSumsHCAL_[folderName+"_jet_"+s]);
-    } 
+    if(col1.size()!=0){
+      for (unsigned int i = 0; i  != col1.at(0).getOuterStrips().size(); i++)
+      {
+        std::string s = std::to_string(i);
+        jetOuterStripsArea_[folderName+"_jet_"+s]= new std::vector<Float_t>();
+        jetOuterStripsEnergy_[folderName+"_jet_"+s]= new std::vector<Float_t>();
+        tree->Branch("jetOuterStripsEnergy_"+s+"_"+TString(folderName), "std::vector<float>", &jetOuterStripsEnergy_[folderName+"_jet_"+s]);
+        tree->Branch("jetOuterStripsArea_"+s+"_"+TString(folderName), "std::vector<float>", &jetOuterStripsArea_[folderName+"_jet_"+s]);
+      } 
+      for (unsigned int i = 0; i  != col1.at(0).ringSums().size(); i++)
+      {
+        std::string s = std::to_string(i);
+        jetRingSumsArea_[folderName+"_jet_"+s]= new std::vector<Float_t>();
+        jetRingSumsEnergy_[folderName+"_jet_"+s]= new std::vector<Float_t>();
+        jetRingSumsHighest_[folderName+"_jet_"+s]= new std::vector<Float_t>();
+        tree->Branch("jetRingSumsEnergy_"+s+"_"+TString(folderName), "std::vector<float>", &jetRingSumsEnergy_[folderName+"_jet_"+s]);
+        tree->Branch("jetRingSumsHighest_"+s+"_"+TString(folderName), "std::vector<float>", &jetRingSumsHighest_[folderName+"_jet_"+s]);
+        tree->Branch("jetRingSumsArea_"+s+"_"+TString(folderName), "std::vector<float>", &jetRingSumsArea_[folderName+"_jet_"+s]);
+      } 
+      for (unsigned int i = 0; i  != col1.at(0).ringSumsEC().size(); i++)
+      {
+        std::string s = std::to_string(i);
+        jetRingSumsECAL_[folderName+"_jet_"+s]= new std::vector<Float_t>();
+        tree->Branch("jetRingSumsECAL_"+s+"_"+TString(folderName), "std::vector<float>", &jetRingSumsECAL_[folderName+"_jet_"+s]);
+      } 
+      for (unsigned int i = 0; i  != col1.at(0).ringSumsHC().size(); i++)
+      {
+        std::string s = std::to_string(i);
+        jetRingSumsHCAL_[folderName+"_jet_"+s]= new std::vector<Float_t>();
+        tree->Branch("jetRingSumsHCAL_"+s+"_"+TString(folderName), "std::vector<float>", &jetRingSumsHCAL_[folderName+"_jet_"+s]);
+      } 
+    }
   }
 
 
@@ -101,7 +103,7 @@ void CaloTowerAnalyser::MakeJetTree(const std::vector<jJet> & col1, const std::v
   jetTowerEnergyUp5_[folderName+"_jet"]->clear();
   jetTowerEnergyUp8_[folderName+"_jet"]->clear();
 
-  if(!isuct && !isgct){
+  if(col1.size()!=0.){
 
     for (unsigned int i = 0; i  != col1.at(0).getOuterStrips().size(); i++)
     {

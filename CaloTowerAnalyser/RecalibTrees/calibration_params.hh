@@ -161,5 +161,55 @@ std::vector<TLorentzVector> calibrateL1Jets(const std::vector<TLorentzVector>& i
   return outJets;
 }
 
+std::vector<TLorentzVector> calibrateL1Jets(const std::vector<TLorentzVector>& inJets, TString type, int CALIBMODE){
+
+  std::vector<TLorentzVector> outJets;
+
+  if(CALIBMODE<1 || CALIBMODE>4){
+    std::cout << "Invalid calib bdt mode" << std::endl;
+    return outJets;
+  }
+
+  TMVA::Reader *tmvaReader_ = new TMVA::Reader();
+
+  tmvaReader_->AddVariable("pt" ,&tmPT );
+  tmvaReader_->AddVariable("eta",&tmETA);
+
+  if (CALIBMODE==2)  tmvaReader_->AddVariable("hoe",&tmHOE);
+  if (CALIBMODE==3)  tmvaReader_->AddVariable("sopt",&tmSOPT);
+  if (CALIBMODE==4)  {
+    tmvaReader_->AddVariable("hoe",&tmHOE);
+    tmvaReader_->AddVariable("sopt",&tmSOPT);
+  }
+
+
+  if(type=="s5_global"){
+
+    if(CALIBMODE==1) tmvaReader_->BookMVA("BDTG","/afs/cern.ch/user/n/nckw/public/forAdam/global_rho_weights/weights/TMVARegresion_BDTG.weights.xml ");
+    else if (CALIBMODE==2) tmvaReader_->BookMVA("BDTG","/afs/cern.ch/user/n/nckw/public/forAdam/global_rho_weights/weights/TMVARegresion_BDTG_3var_hoe.weights.xml ");
+    else if (CALIBMODE==3) tmvaReader_->BookMVA("BDTG","/afs/cern.ch/user/n/nckw/public/forAdam/global_rho_weights/weights/TMVARegresion_BDTG_3var_sopt.weights.xml ");
+    else if (CALIBMODE==4) tmvaReader_->BookMVA("BDTG","/afs/cern.ch/user/n/nckw/public/forAdam/global_rho_weights/weights/TMVARegresion_BDTG_4var.weights.xml ");
+
+  }else if(type=="s5_chunky"){
+
+    if(CALIBMODE==1) tmvaReader_->BookMVA("BDTG","/afs/cern.ch/user/n/nckw/public/forAdam/chunky_donut_weights/weights/TMVARegresion_BDTG.weights.xml ");
+    else if (CALIBMODE==2) tmvaReader_->BookMVA("BDTG","/afs/cern.ch/user/n/nckw/public/forAdam/chunky_donut_weights/weights/TMVARegresion_BDTG_3var_hoe.weights.xml ");
+    else if (CALIBMODE==3) tmvaReader_->BookMVA("BDTG","/afs/cern.ch/user/n/nckw/public/forAdam/chunky_donut_weights/weights/TMVARegresion_BDTG_3var_sopt.weights.xml ");
+    else if (CALIBMODE==4) tmvaReader_->BookMVA("BDTG","/afs/cern.ch/user/n/nckw/public/forAdam/chunky_donut_weights/weights/TMVARegresion_BDTG_4var.weights.xml ");
+
+  }else{
+    std::cout << "Can't use BDT method on this jet type" << std::endl;
+    return outJets;
+  }
+
+
+  // in the loop, set the variables and get the scale factor
+
+
+  corr = tmvaReader_->EvaluateRegression(0,"BDTG");
+  l1pt = l1pt*corr;
+
+  return outJets;
+}
 #endif
 
