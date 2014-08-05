@@ -73,11 +73,11 @@ RecalibTrees::RecalibTrees(bool doingNGun, double useEtaCut) //: fChain(0)
   //TTree* fullTree;
 
   if(doNGun){
-    s1="ngun_jetTree_newAreas.root";
-    s2="/afs/cern.ch/work/a/aelwood/public/NGUN/140729/ngun_14-07-29.root";
+    s1="jetTreeNgun.root";
+    s2="/afs/cern.ch/work/a/aelwood/public/NGUN/140801/ngun_14-08-01.root";
   }else{
-    s1="ttbar_jetTree_newAreas.root";
-    s2="/afs/cern.ch/work/a/aelwood/public/TTBAR/140729/ttbar_14-07-29.root";
+    s1="jetTreeTtbar.root";
+    s2="/afs/cern.ch/work/a/aelwood/public/TTBAR/140801/ttbar_14-08-01.root";
   }
 
 

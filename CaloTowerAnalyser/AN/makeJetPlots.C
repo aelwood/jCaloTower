@@ -12,7 +12,7 @@ namespace{
   int N_25NS_BUNCHES=2508;
   int LHC_FREQUENCY=11246;
 
-  int ZB_XSECTION=LHC_FREQUENCY*N_50NS_BUNCHES;
+  int ZB_XSECTION=LHC_FREQUENCY*N_25NS_BUNCHES;
 
 }
 
@@ -20,28 +20,28 @@ void makeJetPlots()
 {
   TFile * fout = new TFile("jetPlots_newAreas.root","recreate");
 
-  TFile * finNeutrino = new TFile("ngun_calibJets_newAreas.root");
+  TFile * finNeutrino = new TFile("calibJetsNGun.root");
   TTree * treeNeut = (TTree *)finNeutrino->Get("jetTree");
-  treeNeut->AddFriend("demo/L1Tree",
-      "/afs/cern.ch/work/a/aelwood/public/NGUN/140729/ngun_14-07-29.root");
+  //treeNeut->AddFriend("demo/L1Tree",
+  //    "/afs/cern.ch/work/a/aelwood/public/NGUN/140801/ngun_14-08-01.root");
   TChain* chainNeut = new TChain("demo/L1Tree");
-  chainNeut->Add("/afs/cern.ch/work/a/aelwood/public/NGUN/140729/output*.root");
-  //treeNeut->AddFriend("calibJetNgun.root");
+  chainNeut->Add("/afs/cern.ch/work/a/aelwood/public/NGUN/140801/output*.root");
+  treeNeut->AddFriend(chainNeut);
 
-  TFile * finTtbar = new TFile("ttbar_calibJets_newAreas.root");
+  TFile * finTtbar = new TFile("calibJetsTtbar.root");
   TTree * treeTtbar = (TTree *)finTtbar->Get("jetTree");
   treeTtbar->AddFriend("demo/L1Tree",
-      "/afs/cern.ch/work/a/aelwood/public/TTBAR/140729/ttbar_14-07-29.root");
+      "/afs/cern.ch/work/a/aelwood/public/TTBAR/140801/ttbar_14-08-01.root");
   //treeTtbar->AddFriend("calibJetsTtbar.root");
 
   std::vector<TString> jetTypes;
-  jetTypes.push_back("calib_s0_nopus");
+/*  jetTypes.push_back("calib_s0_nopus");
   jetTypes.push_back("calib_s0_donut");
   jetTypes.push_back("calib_s0_global");
-  //jetTypes.push_back("s0_chunky");
-  //jetTypes.push_back("s0_tsup1");
-  //jetTypes.push_back("s0_tsup2");
-  //jetTypes.push_back("s0_tsup3");
+//jetTypes.push_back("s0_chunky");
+//jetTypes.push_back("s0_tsup1");
+//jetTypes.push_back("s0_tsup2");
+//jetTypes.push_back("s0_tsup3");
   jetTypes.push_back("calib_s5_nopus");
   jetTypes.push_back("calib_s5_donut");
   jetTypes.push_back("calib_s5_global");
@@ -50,10 +50,12 @@ void makeJetPlots()
   jetTypes.push_back("calib_s5_tsup2");
   jetTypes.push_back("calib_c10_nopus");
   jetTypes.push_back("calib_c10_donut");
-  //jetTypes.push_back("s5_tsup3");
+//jetTypes.push_back("s5_tsup3");
   jetTypes.push_back("gen");
-  jetTypes.push_back("uct_calib_gen");
+  jetTypes.push_back("met");
   jetTypes.push_back("gct_calib_gen");
+  */
+jetTypes.push_back("uct_calib_gen");
 
   std::vector<TString> jetnum;
   jetnum.push_back("0");
@@ -92,10 +94,22 @@ void makeJetPlots()
 
       makeSums(treeTtbar, sumsDir, *iType, "ttbar", false);
 
+    }else if(*iType=="met"){
+
+      TH1F* etEff = new TH1F();
+      TH1F* metEff = new TH1F();
+      TH1F* etRate = new TH1F();
+      TH1F* metRate = new TH1F();
+      makeSumsEfficiency(treeTtbar,sumsEffDir,*iType,etEff,metEff,false);
+      //makeSumsRate(chainNeut, sumsRateDir, *iType, etRate, metRate,false);
+      makeSumsRate(treeNeut, sumsRateDir, *iType, etRate, metRate,false);
+      makeSumsRateEff(rateEffDir, etRate, etEff, metRate, metEff);
+
     }else if(iType->Contains("calib_gen")){
 
       makeSums(treeTtbar, sumsDir, *iType, "ttbar",true);
-      makeSums(chainNeut, sumsDir, *iType, "ngun",true);
+      //makeSums(chainNeut, sumsDir, *iType, "ngun",true);
+      makeSums(treeNeut, sumsDir, *iType, "ngun",true);
 
       makeSumsTurnon(treeTtbar, sumsTurnonDir, *iType, sumPtCuts,true);
       TH1F* htEff = new TH1F();
@@ -103,14 +117,16 @@ void makeJetPlots()
       TH1F* htRate = new TH1F();
       TH1F* mhtRate = new TH1F();
       makeSumsEfficiency(treeTtbar, sumsEffDir, *iType, htEff, mhtEff,true);
-      makeSumsRate(chainNeut, sumsRateDir, *iType, htRate, mhtRate,true);
+      //makeSumsRate(chainNeut, sumsRateDir, *iType, htRate, mhtRate,true);
+      makeSumsRate(treeNeut, sumsRateDir, *iType, htRate, mhtRate,true);
       makeSumsRateEff(rateEffDir, htRate, htEff, mhtRate, mhtEff);
 
       for(std::vector<TString>::const_iterator iNum=jetnum.begin();
           iNum!=jetnum.end(); iNum++){
 
         TH1F* eff = makeEfficiency(treeTtbar, effDir, *iType, *iNum);
-        TH1F* rate = makeRate(chainNeut, rateDir, *iType, *iNum);
+        //TH1F* rate = makeRate(chainNeut, rateDir, *iType, *iNum);
+        TH1F* rate = makeRate(treeNeut, rateDir, *iType, *iNum);
 
         makeRateEff(rateEffDir, rate, eff, *iNum);
 
@@ -159,8 +175,8 @@ void makeRatesNvtx(TTree* tree, TDirectory* dir, TString jetType, TString jetNum
   int cut;
   if(jetNum=="0") cut= 100;
   else if(jetNum=="3") cut= 30;
-  TString bins2 = "(10,0,100,1000,0,1000)";
-  TString bins = "(10,0,100)";
+  TString bins2 = "(20,0,100,1000,0,1000)";
+  TString bins = "(20,0,100)";
   double xpoints[50];
   double ypoints[50];
   double ypointserror[50];
@@ -494,7 +510,7 @@ TH1F* makeEfficiency(TTree *tree, TDirectory* dir, TString jetType, TString jetN
   TCut matchedcut = "jetMatchedPt_"+jetType+"["+jetNum+"]!=-1";
 
 
-  tree->Draw("jetPt_"+jetType+"["+jetNum+"]>>"+jetType+"_"+jetNum+"(1000,0.,1000.)",
+  tree->Draw("jetPt_"+jetType+"["+jetNum+"]>>"+jetType+"_"+jetNum+"(50,0.,500.)",
       genptcut,"");
   //tree->Draw("jetPt_"+jetType+"["+jetNum+"]>>"+jetType+"_"+jetNum+"(1000,0.,1000.)",
   //    genptcut&&matchedcut,"");
@@ -520,6 +536,9 @@ void makeSumsEfficiency(TTree *tree, TDirectory* dir, TString jetType, TH1F* htE
   if(doUct){
     tree->Draw("sumsHT_"+jetType+"_sum>>"+jetType+"(400,0.,4000.)",
         genptcut,"");
+  }else if(jetType=="met"){
+    tree->Draw("sumsET_>>"+jetType+"(400,0.,4000.)",
+        genptcut,"");
   }else{
     tree->Draw("ht_"+jetType+">>"+jetType+"(400,0.,4000.)",
         genptcut,"");
@@ -541,6 +560,9 @@ void makeSumsEfficiency(TTree *tree, TDirectory* dir, TString jetType, TH1F* htE
   if(doUct){
     tree->Draw("sumsMHT_"+jetType+"_sum>>"+jetType+"(400,0.,4000.)",
         genptcut,"");
+  }else if(jetType=="met"){
+    tree->Draw("sumsMET_>>"+jetType+"(400,0.,4000.)",
+        genptcut,"");
   }else{
     tree->Draw("mht_"+jetType+">>"+jetType+"(400,0.,4000.)",
         genptcut,"");
@@ -559,7 +581,7 @@ void makeSumsEfficiency(TTree *tree, TDirectory* dir, TString jetType, TH1F* htE
 TH1F* makeRate(TTree *tree, TDirectory* dir, TString jetType, TString jetNum){
 
   dir->cd();
-  tree->Draw("jetPt_"+jetType+"["+jetNum+"]>>"+jetType+"_"+jetNum+"(1000,-0.5,999.5)");
+  tree->Draw("jetPt_"+jetType+"["+jetNum+"]>>"+jetType+"_"+jetNum+"(50,0.,500.)");
   TH1F *test = (TH1F*)gDirectory->Get(jetType+"_"+jetNum);
   test->Write();
   test->SetName("Rate_"+jetNum);
@@ -575,6 +597,8 @@ void makeSumsRate(TTree *tree, TDirectory* dir, TString jetType, TH1F* htRate, T
   dir->cd();
   if(doUct){
     tree->Draw("sumsHT_"+jetType+"_sum>>ht_"+jetType+"(400,0.,4000.)");
+  }else if(jetType=="met"){
+    tree->Draw("sumsET_>>ht_"+jetType+"(400,0.,4000.)");
   }else{
     tree->Draw("ht_"+jetType+">>ht_"+jetType+"(400,0.,4000.)");
   }
@@ -588,6 +612,8 @@ void makeSumsRate(TTree *tree, TDirectory* dir, TString jetType, TH1F* htRate, T
 
   if(doUct){
     tree->Draw("sumsMHT_"+jetType+"_sum>>mht_"+jetType+"(400,0.,4000.)");
+  }else if(jetType=="met"){
+    tree->Draw("sumsMET_>>mht_"+jetType+"(400,0.,4000.)");
   }else{
     tree->Draw("mht_"+jetType+">>mht_"+jetType+"(400,0.,4000.)");
   }
@@ -619,6 +645,7 @@ TH1F * makeEfficiencyCumu(TH1F * input, double overallNorm){
 }
 
 TH1F * makeRateCumu(TH1F * input, double overallNorm){
+ std::cout << "overall norm: " << overallNorm << std::endl;
 
   TH1F * output = new TH1F(*input);
   //output=input;
@@ -631,6 +658,7 @@ TH1F * makeRateCumu(TH1F * input, double overallNorm){
   {
     dummy += input->GetBinContent(nXbins+1-xbins);
     output->SetBinContent((nXbins+1-xbins),ZB_XSECTION*((double)dummy)/overallNorm);
+    //output->SetBinContent((nXbins+1-xbins),((double)dummy)/overallNorm);
   }
 
   return output;
@@ -645,7 +673,7 @@ TGraphAsymmErrors * effDiv(TH1F * matchedhist, TH1F * allhist)
   //matchedhist->Divide(allhist);
   //matchedhist->Draw();
 
-  matchCurve->Divide(matchedhist,allhist);
+  matchCurve->BayesDivide(matchedhist,allhist);
   return matchCurve;
 }
 

@@ -448,7 +448,11 @@ JetMaker::JetMaker(TTree *tree, bool doingNGun) : fChain(0)
   Init(tree);
 
   //Initialise the memory for the new tree
-  outFile = new TFile("jetTreeHists.root","RECREATE");
+  if(doingNGun){
+    outFile = new TFile("jetTreeNgun.root","RECREATE");
+  }else{
+    outFile = new TFile("jetTreeTtbar.root","RECREATE");
+  }
   jetTree = new TTree("jetTree","jetTree");
 
   //Add the eta bins for the calibration
@@ -484,7 +488,7 @@ JetMaker::JetMaker(TTree *tree, bool doingNGun) : fChain(0)
   jetTypes.push_back("c10_tsup1");
   jetTypes.push_back("c10_tsup2");
   jetTypes.push_back("c10_tsup3");
-  
+
   //Assign the memory for all the different types of jets
   for(std::vector<TString>::const_iterator it=jetTypes.begin(); 
       it!=jetTypes.end(); it++){
