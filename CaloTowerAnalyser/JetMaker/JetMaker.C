@@ -9,19 +9,20 @@
 namespace{
 
   void getESums(const std::vector<TLorentzVector>& jets, 
-      double& ht, double& mhtX, double& mhtY){
+      double& ht, double& mht, double& mhtX, double& mhtY){
 
     ht=0;
-    TLorentzVector mht;
+    TLorentzVector mhtVec;
 
     for(unsigned i=0; i<jets.size(); i++){
       if(jets[i].Pt()>20.){
         ht+=jets[i].Pt();
-        mht+=jets[i];
+        mhtVec+=jets[i];
       }
     }
-    mhtX=-1.0*mht.Px();
-    mhtY=-1.0*mht.Py();
+    mhtX=-1.0*mhtVec.Px();
+    mhtY=-1.0*mhtVec.Py();
+    mht=mhtVec.Pt();
   }
 
   bool sortbypt(const TLorentzVector &a, const TLorentzVector &b) { return a.Pt() > b.Pt(); } 
@@ -42,22 +43,30 @@ void JetMaker::Loop()
 
     GetEntry(jentry);
 
-    //Clear the vectors
+    //Clear the vectors and reset the sums
     for(std::vector<TString>::const_iterator it=jetTypes.begin(); it!=jetTypes.end(); it++){
       jetPt[*it]->clear();
       jetMatchedPt[*it]->clear();
       jetEta[*it]->clear();
       jetPhi[*it]->clear();
+      ht[*it] = 0.;
+      mht[*it] = 0.;
+      mhtX[*it] = 0.;
+      mhtY[*it] = 0.;
     }
+    met=sumsMET_;
+    et=sumsET_;
+    nInts=mNPV;
+    
 
     std::map< TString,std::vector<TLorentzVector> > jetObjects;
-    for(std::vector<TString>::const_iterator it=jetTypes.begin();
-        it!=jetTypes.end();it++){
-      jetObjects[*it].reserve(20);
-    }
+  //  for(std::vector<TString>::const_iterator it=jetTypes.begin();
+  //      it!=jetTypes.end();it++){
+  //    jetObjects[*it].reserve(20);
+  //  }
 
     std::vector<TLorentzVector> genJetObjects;
-    genJetObjects.reserve(20);
+    //genJetObjects.reserve(20);
 
     //Pull the nopus jets into a TLorentzVector
     //Apply the types of PUS
@@ -75,6 +84,7 @@ void JetMaker::Loop()
 
     //Define the jetObjects
     for(unsigned i=0; i<jetPt_L1_for_Nick->size(); i++){
+
       TLorentzVector jet;
       jet.SetPtEtaPhiM(jetPt_L1_for_Nick->at(i),jetEta_L1_for_Nick->at(i),
           jetPhi_L1_for_Nick->at(i),0.);
@@ -175,65 +185,109 @@ void JetMaker::Loop()
 
     for(std::vector<TString>::const_iterator it=jetTypes.begin(); it!=jetTypes.end(); it++){
 
-      //Sort the jets by pt
-      std::sort(jetObjects[*it].begin(),jetObjects[*it].end(),sortbypt);
+      if(*it=="gen"){
 
-      //Match the jets to gen
+        for(unsigned j=0; j<genJetObjects.size(); j++){
 
-      std::vector<int> l1_matched_index_algo1;
-      if(!doNGun){
-        //Make all possible pairs of jets
-        std::vector<pair_info> pairs = make_pairs(genJetObjects, jetObjects[*it]);
-
-        //Find the index of the gen jet that is matched to L1
-        l1_matched_index_algo1 
-          = analyse_pairs_local(pairs, jetObjects[*it].size(),0.49);
-      }
-
-      //Fill the tree variables
-      //int j=0;
-      //for(std::vector<TLorentzVector>::const_iterator iJet=jetObjects[*it].begin(); 
-      //    iJet!=jetObjects[*it].end(); iJet++)
-
-      for(unsigned j=0; j<jetObjects[*it].size(); j++){
-
-        //Note the conversion to GeV
-        double newPt = 0.5*jetObjects[*it][j].Pt();
-        jetPt[*it]->push_back(newPt);
-        jetEta[*it]->push_back(jetObjects[*it][j].Eta());
-        jetPhi[*it]->push_back(jetObjects[*it][j].Phi());
-
-        if(!doNGun){
-          //Fill for the matched
-          if (l1_matched_index_algo1[j]!=-1)
-          {
-            jetMatchedPt[*it]->push_back(genJetObjects.at(l1_matched_index_algo1.at(j)).Pt());
-
-            //Fill the histograms for the correlation
-            for(unsigned e=0; e<etaBins.size(); e++){
-              double etaLow = e*0.75-3.0;
-              double etaHigh = e*0.75-2.25;
-              if((jetObjects[*it][j].Eta() > etaLow) && (jetObjects[*it][j].Eta() <= etaHigh)){
-
-                corrHists[*it+etaBins[e]]->Fill(genJetObjects.at(l1_matched_index_algo1.at(j)).Pt(),newPt);
-                ratioHists[*it+etaBins[e]]->Fill(genJetObjects.at(l1_matched_index_algo1.at(j)).Pt(),
-                    newPt/genJetObjects.at(l1_matched_index_algo1.at(j)).Pt());
-                break;
-
-              }
-            }
-          }
-          else
-          {
-            jetMatchedPt[*it]->push_back(-1.);
-          }
+          //Note the conversion to GeV
+          jetPt[*it]->push_back(genJetObjects[j].Pt());
+          jetEta[*it]->push_back(genJetObjects[j].Eta());
+          jetPhi[*it]->push_back(genJetObjects[j].Phi());
         }
 
-        //j++;
-      }
+        getESums(genJetObjects,ht[*it],mht[*it],mhtX[*it],mhtY[*it]);
 
-      //Calculate the energy sums
-      getESums(jetObjects[*it],ht[*it],mhtX[*it],mhtY[*it]);
+      }else if(*it=="uct"){
+
+        for(unsigned j=0; j<jetPt_uct_calib_gen->size(); j++){
+
+          //Note the conversion to GeV
+          jetPt[*it]->push_back(jetPt_uct_calib_gen->at(j));
+          jetMatchedPt[*it]->push_back(jetMatchedPt_uct_calib_gen->at(j));
+          jetEta[*it]->push_back(jetPt_uct_calib_gen->at(j));
+          jetPhi[*it]->push_back(jetPt_uct_calib_gen->at(j));
+        }
+        ht[*it]=sumsHT_uct_calib_gen_sum;
+        mht[*it]=sumsMHT_uct_calib_gen_sum;
+        mhtX[*it]=sumsMHTx_uct_calib_gen_sum;
+        mhtY[*it]=sumsMHTy_uct_calib_gen_sum;
+
+      }else if(*it=="gct"){
+
+        for(unsigned j=0; j<jetPt_gct_calib_gen->size(); j++){
+
+          //Note the conversion to GeV
+          jetPt[*it]->push_back(jetPt_gct_calib_gen->at(j));
+          jetMatchedPt[*it]->push_back(jetMatchedPt_gct_calib_gen->at(j));
+          jetEta[*it]->push_back(jetPt_gct_calib_gen->at(j));
+          jetPhi[*it]->push_back(jetPt_gct_calib_gen->at(j));
+        }
+        ht[*it]=sumsHT_gct_calib_gen_sum;
+        mht[*it]=sumsMHT_gct_calib_gen_sum;
+        mhtX[*it]=sumsMHTx_gct_calib_gen_sum;
+        mhtY[*it]=sumsMHTy_gct_calib_gen_sum;
+
+      }else{
+        //Sort the jets by pt
+        std::sort(jetObjects[*it].begin(),jetObjects[*it].end(),sortbypt);
+
+        //Match the jets to gen
+
+        std::vector<int> l1_matched_index_algo1;
+        if(!doNGun){
+          //Make all possible pairs of jets
+          std::vector<pair_info> pairs = make_pairs(genJetObjects, jetObjects[*it]);
+
+          //Find the index of the gen jet that is matched to L1
+          l1_matched_index_algo1 
+            = analyse_pairs_local(pairs, jetObjects[*it].size(),0.49);
+        }
+
+        //Fill the tree variables
+        //int j=0;
+        //for(std::vector<TLorentzVector>::const_iterator iJet=jetObjects[*it].begin(); 
+        //    iJet!=jetObjects[*it].end(); iJet++)
+
+        for(unsigned j=0; j<jetObjects[*it].size(); j++){
+
+          //Note the conversion to GeV
+          double newPt = 0.5*jetObjects[*it][j].Pt();
+          jetPt[*it]->push_back(newPt);
+          jetEta[*it]->push_back(jetObjects[*it][j].Eta());
+          jetPhi[*it]->push_back(jetObjects[*it][j].Phi());
+
+          if(!doNGun){
+            //Fill for the matched
+            if (l1_matched_index_algo1[j]!=-1)
+            {
+              jetMatchedPt[*it]->push_back(genJetObjects.at(l1_matched_index_algo1.at(j)).Pt());
+
+              //Fill the histograms for the correlation
+              for(unsigned e=0; e<etaBins.size(); e++){
+                double etaLow = e*0.75-3.0;
+                double etaHigh = e*0.75-2.25;
+                if((jetObjects[*it][j].Eta() > etaLow) && (jetObjects[*it][j].Eta() <= etaHigh)){
+
+                  corrHists[*it+etaBins[e]]->Fill(genJetObjects.at(l1_matched_index_algo1.at(j)).Pt(),newPt);
+                  ratioHists[*it+etaBins[e]]->Fill(genJetObjects.at(l1_matched_index_algo1.at(j)).Pt(),
+                      newPt/genJetObjects.at(l1_matched_index_algo1.at(j)).Pt());
+                  break;
+
+                }
+              }
+            }
+            else
+            {
+              jetMatchedPt[*it]->push_back(-1.);
+            }
+          }
+        }
+        //j++;
+
+        //Calculate the energy sums
+        getESums(jetObjects[*it],ht[*it],mht[*it],mhtX[*it],mhtY[*it]);
+
+      }
 
     }
 

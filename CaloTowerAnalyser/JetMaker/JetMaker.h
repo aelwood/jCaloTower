@@ -15,7 +15,7 @@
 
 // Header file for the classes stored in the TTree if any.
 #include <vector>
-#include <vector>
+#include <iostream>
 
 // Fixed size dimensions of array or collections stored in the TTree if any.
 
@@ -42,8 +42,13 @@ class JetMaker {
     std::map<TString, std::vector<float>* > jetPhi;
     std::map<TString, std::vector<float>* > jetEta;
     std::map<TString, double> ht;
+    std::map<TString, double> mht;
     std::map<TString, double> mhtX;
     std::map<TString, double> mhtY;
+
+    //The variables to carry through
+    double met,et;
+    int nInts;
 
     // Declaration of leaf types
     Int_t           mNPV;
@@ -206,6 +211,30 @@ class JetMaker {
     Double_t        sumsMHT_gct_calib_gen_sum;
     Double_t        sumsMHTx_gct_calib_gen_sum;
     Double_t        sumsMHTy_gct_calib_gen_sum;
+    vector<float>   *jetPt_uct_calib_gen;
+    vector<float>   *jetArea_uct_calib_gen;
+    vector<float>   *jetFirEta_uct_calib_gen;
+    vector<float>   *jetCovEtaPhi_uct_calib_gen;
+    vector<float>   *jetFirPhi_uct_calib_gen;
+    vector<float>   *jetSecEta_uct_calib_gen;
+    vector<float>   *jetSecPhi_uct_calib_gen;
+    vector<float>   *jetPhi_uct_calib_gen;
+    vector<float>   *jetEta_uct_calib_gen;
+    vector<float>   *jetDonut_uct_calib_gen;
+    vector<float>   *jetMatchedPt_uct_calib_gen;
+    vector<float>   *jetMinDR_uct_calib_gen;
+    vector<int>     *jetTowerEnergyUp1_uct_calib_gen;
+    vector<int>     *jetTowerEnergyUp2_uct_calib_gen;
+    vector<int>     *jetTowerEnergyUp3_uct_calib_gen;
+    vector<int>     *jetTowerEnergyUp4_uct_calib_gen;
+    vector<int>     *jetTowerEnergyUp5_uct_calib_gen;
+    vector<int>     *jetTowerEnergyUp8_uct_calib_gen;
+    vector<int>     *genJetMatchAlgo1_uct_calib_gen;
+    vector<int>     *genJetMatchAlgo2_uct_calib_gen;
+    Double_t        sumsHT_uct_calib_gen_sum;
+    Double_t        sumsMHT_uct_calib_gen_sum;
+    Double_t        sumsMHTx_uct_calib_gen_sum;
+    Double_t        sumsMHTy_uct_calib_gen_sum;
     vector<float>   *jetPt_gct_uncalib_gen;
     vector<float>   *jetArea_gct_uncalib_gen;
     vector<float>   *jetFirEta_gct_uncalib_gen;
@@ -392,6 +421,30 @@ class JetMaker {
     TBranch        *b_sumsMHT_gct_calib_gen_sum;   //!
     TBranch        *b_sumsMHTx_gct_calib_gen_sum;   //!
     TBranch        *b_sumsMHTy_gct_calib_gen_sum;   //!
+    TBranch        *b_jetPt_uct_calib_gen;   //!
+    TBranch        *b_jetArea_uct_calib_gen;   //!
+    TBranch        *b_jetFirEta_uct_calib_gen;   //!
+    TBranch        *b_jetCovEtaPhi_uct_calib_gen;   //!
+    TBranch        *b_jetFirPhi_uct_calib_gen;   //!
+    TBranch        *b_jetSecEta_uct_calib_gen;   //!
+    TBranch        *b_jetSecPhi_uct_calib_gen;   //!
+    TBranch        *b_jetPhi_uct_calib_gen;   //!
+    TBranch        *b_jetEta_uct_calib_gen;   //!
+    TBranch        *b_jetDonut_uct_calib_gen;   //!
+    TBranch        *b_jetMatchedPt_uct_calib_gen;   //!
+    TBranch        *b_jetMinDR_uct_calib_gen;   //!
+    TBranch        *b_jetTowerEnergyUp1_uct_calib_gen;   //!
+    TBranch        *b_jetTowerEnergyUp2_uct_calib_gen;   //!
+    TBranch        *b_jetTowerEnergyUp3_uct_calib_gen;   //!
+    TBranch        *b_jetTowerEnergyUp4_uct_calib_gen;   //!
+    TBranch        *b_jetTowerEnergyUp5_uct_calib_gen;   //!
+    TBranch        *b_jetTowerEnergyUp8_uct_calib_gen;   //!
+    TBranch        *b_genJetMatchAlgo1_uct_calib_gen;   //!
+    TBranch        *b_genJetMatchAlgo2_uct_calib_gen;   //!
+    TBranch        *b_sumsHT_uct_calib_gen_sum;   //!
+    TBranch        *b_sumsMHT_uct_calib_gen_sum;   //!
+    TBranch        *b_sumsMHTx_uct_calib_gen_sum;   //!
+    TBranch        *b_sumsMHTy_uct_calib_gen_sum;   //!
     TBranch        *b_jetPt_gct_uncalib_gen;   //!
     TBranch        *b_jetArea_gct_uncalib_gen;   //!
     TBranch        *b_jetFirEta_gct_uncalib_gen;   //!
@@ -437,89 +490,95 @@ JetMaker::JetMaker(TTree *tree, bool doingNGun) : fChain(0)
   // if parameter tree is not specified (or zero), connect the file
   // used to generate this class and read the Tree.
   if (tree == 0) {
-    TFile *f = (TFile*)gROOT->GetListOfFiles()->FindObject("/home/adam/ttbar_14-07-10.root");
-    if (!f || !f->IsOpen()) {
-      f = new TFile("/home/adam/ttbar_14-07-10.root");
-    }
-    TDirectory * dir = (TDirectory*)f->Get("/home/adam/ttbar_14-07-10.root:/demo");
-    dir->GetObject("L1Tree",tree);
-
-  }
-  Init(tree);
-
-  //Initialise the memory for the new tree
-  if(doingNGun){
-    outFile = new TFile("jetTreeNgun.root","RECREATE");
+    std::cout<<"Please give a tree as input" << std::endl;
   }else{
-    outFile = new TFile("jetTreeTtbar.root","RECREATE");
-  }
-  jetTree = new TTree("jetTree","jetTree");
 
-  //Add the eta bins for the calibration
+    Init(tree);
 
-  etaBins.push_back("Eta_m3p00_to_m2p25");
-  etaBins.push_back("Eta_m2p25_to_m1p50");
-  etaBins.push_back("Eta_m1p50_to_m0p75");
-  etaBins.push_back("Eta_m0p75_to_0p00");
-  etaBins.push_back("Eta_0p00_to_0p75");
-  etaBins.push_back("Eta_0p75_to_1p50");
-  etaBins.push_back("Eta_1p50_to_2p25");
-  etaBins.push_back("Eta_2p25_to_3p00");
-
-  //Declare the types of PUS jets to be made
-  jetTypes.push_back("s0_nopus");
-  jetTypes.push_back("s0_donut");
-  jetTypes.push_back("s0_global");
-  jetTypes.push_back("s0_chunky");
-  jetTypes.push_back("s0_tsup1");
-  jetTypes.push_back("s0_tsup2");
-  jetTypes.push_back("s0_tsup3");
-  jetTypes.push_back("s5_nopus");
-  jetTypes.push_back("s5_donut");
-  jetTypes.push_back("s5_global");
-  jetTypes.push_back("s5_chunky");
-  jetTypes.push_back("s5_tsup1");
-  jetTypes.push_back("s5_tsup2");
-  jetTypes.push_back("s5_tsup3");
-  jetTypes.push_back("c10_nopus");
-  jetTypes.push_back("c10_donut");
-  jetTypes.push_back("c10_global");
-  jetTypes.push_back("c10_chunky");
-  jetTypes.push_back("c10_tsup1");
-  jetTypes.push_back("c10_tsup2");
-  jetTypes.push_back("c10_tsup3");
-
-  //Assign the memory for all the different types of jets
-  for(std::vector<TString>::const_iterator it=jetTypes.begin(); 
-      it!=jetTypes.end(); it++){
-    jetPt[*it] = new std::vector<float>();
-    jetMatchedPt[*it] = new std::vector<float>();
-    jetEta[*it] = new std::vector<float>();
-    jetPhi[*it] = new std::vector<float>();
-    ht[*it] = 0;
-    mhtX[*it] = 0;
-    mhtY[*it] = 0;
-
-    //Assign memory for the calibration histograms
-    for(std::vector<TString>::const_iterator eBin=etaBins.begin();
-        eBin!=etaBins.end(); eBin++){
-      corrHists[*it+*eBin] = new TH2D("corr_"+*it+"_"+*eBin,";Gen pT; L1 pT",1000,0.,1000.,1000,0.,1000.);
-      ratioHists[*it+*eBin] = new TH2D("ratio_"+*it+"_"+*eBin,";Gen pT; L1 pT",1000,0.,1000.,1000,-10.,10.);
+    //Initialise the memory for the new tree
+    if(doingNGun){
+      outFile = new TFile("jetTreeNgun.root","RECREATE");
+    }else{
+      outFile = new TFile("jetTreeSignal.root","RECREATE");
     }
-  }
 
-  //Make Branches in the tree
-  for(std::vector<TString>::const_iterator it=jetTypes.begin(); 
-      it!=jetTypes.end(); it++){
-    jetTree->Branch("jetPt_"+*it,"std::vector<float>",&jetPt[*it]);
-    jetTree->Branch("jetMatchedPt_"+*it,"std::vector<float>",&jetMatchedPt[*it]);
-    jetTree->Branch("jetEta_"+*it,"std::vector<float>",&jetEta[*it]);
-    jetTree->Branch("jetPhi_"+*it,"std::vector<float>",&jetPhi[*it]);
-    jetTree->Branch("ht_"+*it,&ht[*it],"ht_"+*it+"/D");
-    jetTree->Branch("mhtX_"+*it,&mhtX[*it],"mhtX_"+*it+"/D");
-    jetTree->Branch("mhtY_"+*it,&mhtY[*it],"mhtY_"+*it+"/D");
-  }
+    jetTree = new TTree("jetTree","jetTree");
 
+    //Add the eta bins for the calibration
+
+    etaBins.push_back("Eta_m3p00_to_m2p25");
+    etaBins.push_back("Eta_m2p25_to_m1p50");
+    etaBins.push_back("Eta_m1p50_to_m0p75");
+    etaBins.push_back("Eta_m0p75_to_0p00");
+    etaBins.push_back("Eta_0p00_to_0p75");
+    etaBins.push_back("Eta_0p75_to_1p50");
+    etaBins.push_back("Eta_1p50_to_2p25");
+    etaBins.push_back("Eta_2p25_to_3p00");
+
+    //Declare the types of PUS jets to be made
+    jetTypes.push_back("s0_nopus");
+    jetTypes.push_back("s0_donut");
+    jetTypes.push_back("s0_global");
+    jetTypes.push_back("s0_chunky");
+    jetTypes.push_back("s0_tsup1");
+    jetTypes.push_back("s0_tsup2");
+    jetTypes.push_back("s0_tsup3");
+    jetTypes.push_back("s5_nopus");
+    jetTypes.push_back("s5_donut");
+    jetTypes.push_back("s5_global");
+    jetTypes.push_back("s5_chunky");
+    jetTypes.push_back("s5_tsup1");
+    jetTypes.push_back("s5_tsup2");
+    jetTypes.push_back("s5_tsup3");
+    jetTypes.push_back("c10_nopus");
+    jetTypes.push_back("c10_donut");
+    jetTypes.push_back("c10_global");
+    jetTypes.push_back("c10_chunky");
+    jetTypes.push_back("c10_tsup1");
+    jetTypes.push_back("c10_tsup2");
+    jetTypes.push_back("c10_tsup3");
+
+    jetTypes.push_back("gen");
+    jetTypes.push_back("uct");
+    jetTypes.push_back("gct");
+
+    //Assign the memory for all the different types of jets
+    for(std::vector<TString>::const_iterator it=jetTypes.begin(); 
+        it!=jetTypes.end(); it++){
+
+      jetPt[*it] = new std::vector<float>();
+      jetMatchedPt[*it] = new std::vector<float>();
+      jetEta[*it] = new std::vector<float>();
+      jetPhi[*it] = new std::vector<float>();
+      //ht[*it] = 0;
+      //mhtX[*it] = 0;
+      //mhtY[*it] = 0;
+
+      //Assign memory for the calibration histograms
+      for(std::vector<TString>::const_iterator eBin=etaBins.begin();
+          eBin!=etaBins.end(); eBin++){
+        corrHists[*it+*eBin] = new TH2D("corr_"+*it+"_"+*eBin,";Gen pT; L1 pT",1000,0.,1000.,1000,0.,1000.);
+        ratioHists[*it+*eBin] = new TH2D("ratio_"+*it+"_"+*eBin,";Gen pT; L1 pT",1000,0.,1000.,1000,-10.,10.);
+      }
+    }
+
+    //Make Branches in the tree
+    for(std::vector<TString>::const_iterator it=jetTypes.begin(); 
+        it!=jetTypes.end(); it++){
+      jetTree->Branch("jetPt_"+*it,"std::vector<float>",&jetPt[*it]);
+      jetTree->Branch("jetMatchedPt_"+*it,"std::vector<float>",&jetMatchedPt[*it]);
+      jetTree->Branch("jetEta_"+*it,"std::vector<float>",&jetEta[*it]);
+      jetTree->Branch("jetPhi_"+*it,"std::vector<float>",&jetPhi[*it]);
+      jetTree->Branch("ht_"+*it,&ht[*it],"ht_"+*it+"/D");
+      jetTree->Branch("mht_"+*it,&mht[*it],"mht_"+*it+"/D");
+      jetTree->Branch("mhtX_"+*it,&mhtX[*it],"mhtX_"+*it+"/D");
+      jetTree->Branch("mhtY_"+*it,&mhtY[*it],"mhtY_"+*it+"/D");
+    }
+    jetTree->Branch("met",&met,"met/D");
+    jetTree->Branch("et",&et,"et/D");
+    jetTree->Branch("nInts",&nInts,"nInts/I");
+
+  }
 }
 
 JetMaker::~JetMaker()
@@ -694,6 +753,28 @@ void JetMaker::Init(TTree *tree)
   jetTowerEnergyUp8_gct_calib_gen = 0;
   genJetMatchAlgo1_gct_calib_gen = 0;
   genJetMatchAlgo2_gct_calib_gen = 0;
+
+  jetPt_uct_calib_gen = 0;
+  jetArea_uct_calib_gen = 0;
+  jetFirEta_uct_calib_gen = 0;
+  jetCovEtaPhi_uct_calib_gen = 0;
+  jetFirPhi_uct_calib_gen = 0;
+  jetSecEta_uct_calib_gen = 0;
+  jetSecPhi_uct_calib_gen = 0;
+  jetPhi_uct_calib_gen = 0;
+  jetEta_uct_calib_gen = 0;
+  jetDonut_uct_calib_gen = 0;
+  jetMatchedPt_uct_calib_gen = 0;
+  jetMinDR_uct_calib_gen = 0;
+  jetTowerEnergyUp1_uct_calib_gen = 0;
+  jetTowerEnergyUp2_uct_calib_gen = 0;
+  jetTowerEnergyUp3_uct_calib_gen = 0;
+  jetTowerEnergyUp4_uct_calib_gen = 0;
+  jetTowerEnergyUp5_uct_calib_gen = 0;
+  jetTowerEnergyUp8_uct_calib_gen = 0;
+  genJetMatchAlgo1_uct_calib_gen = 0;
+  genJetMatchAlgo2_uct_calib_gen = 0;
+
   jetPt_gct_uncalib_gen = 0;
   jetArea_gct_uncalib_gen = 0;
   jetFirEta_gct_uncalib_gen = 0;
@@ -882,6 +963,32 @@ void JetMaker::Init(TTree *tree)
   fChain->SetBranchAddress("sumsMHT_gct_calib_gen_sum", &sumsMHT_gct_calib_gen_sum, &b_sumsMHT_gct_calib_gen_sum);
   fChain->SetBranchAddress("sumsMHTx_gct_calib_gen_sum", &sumsMHTx_gct_calib_gen_sum, &b_sumsMHTx_gct_calib_gen_sum);
   fChain->SetBranchAddress("sumsMHTy_gct_calib_gen_sum", &sumsMHTy_gct_calib_gen_sum, &b_sumsMHTy_gct_calib_gen_sum);
+
+  fChain->SetBranchAddress("jetPt_uct_calib_gen", &jetPt_uct_calib_gen, &b_jetPt_uct_calib_gen);
+  fChain->SetBranchAddress("jetArea_uct_calib_gen", &jetArea_uct_calib_gen, &b_jetArea_uct_calib_gen);
+  fChain->SetBranchAddress("jetFirEta_uct_calib_gen", &jetFirEta_uct_calib_gen, &b_jetFirEta_uct_calib_gen);
+  fChain->SetBranchAddress("jetCovEtaPhi_uct_calib_gen", &jetCovEtaPhi_uct_calib_gen, &b_jetCovEtaPhi_uct_calib_gen);
+  fChain->SetBranchAddress("jetFirPhi_uct_calib_gen", &jetFirPhi_uct_calib_gen, &b_jetFirPhi_uct_calib_gen);
+  fChain->SetBranchAddress("jetSecEta_uct_calib_gen", &jetSecEta_uct_calib_gen, &b_jetSecEta_uct_calib_gen);
+  fChain->SetBranchAddress("jetSecPhi_uct_calib_gen", &jetSecPhi_uct_calib_gen, &b_jetSecPhi_uct_calib_gen);
+  fChain->SetBranchAddress("jetPhi_uct_calib_gen", &jetPhi_uct_calib_gen, &b_jetPhi_uct_calib_gen);
+  fChain->SetBranchAddress("jetEta_uct_calib_gen", &jetEta_uct_calib_gen, &b_jetEta_uct_calib_gen);
+  fChain->SetBranchAddress("jetDonut_uct_calib_gen", &jetDonut_uct_calib_gen, &b_jetDonut_uct_calib_gen);
+  fChain->SetBranchAddress("jetMatchedPt_uct_calib_gen", &jetMatchedPt_uct_calib_gen, &b_jetMatchedPt_uct_calib_gen);
+  fChain->SetBranchAddress("jetMinDR_uct_calib_gen", &jetMinDR_uct_calib_gen, &b_jetMinDR_uct_calib_gen);
+  fChain->SetBranchAddress("jetTowerEnergyUp1_uct_calib_gen", &jetTowerEnergyUp1_uct_calib_gen, &b_jetTowerEnergyUp1_uct_calib_gen);
+  fChain->SetBranchAddress("jetTowerEnergyUp2_uct_calib_gen", &jetTowerEnergyUp2_uct_calib_gen, &b_jetTowerEnergyUp2_uct_calib_gen);
+  fChain->SetBranchAddress("jetTowerEnergyUp3_uct_calib_gen", &jetTowerEnergyUp3_uct_calib_gen, &b_jetTowerEnergyUp3_uct_calib_gen);
+  fChain->SetBranchAddress("jetTowerEnergyUp4_uct_calib_gen", &jetTowerEnergyUp4_uct_calib_gen, &b_jetTowerEnergyUp4_uct_calib_gen);
+  fChain->SetBranchAddress("jetTowerEnergyUp5_uct_calib_gen", &jetTowerEnergyUp5_uct_calib_gen, &b_jetTowerEnergyUp5_uct_calib_gen);
+  fChain->SetBranchAddress("jetTowerEnergyUp8_uct_calib_gen", &jetTowerEnergyUp8_uct_calib_gen, &b_jetTowerEnergyUp8_uct_calib_gen);
+  fChain->SetBranchAddress("genJetMatchAlgo1_uct_calib_gen", &genJetMatchAlgo1_uct_calib_gen, &b_genJetMatchAlgo1_uct_calib_gen);
+  fChain->SetBranchAddress("genJetMatchAlgo2_uct_calib_gen", &genJetMatchAlgo2_uct_calib_gen, &b_genJetMatchAlgo2_uct_calib_gen);
+  fChain->SetBranchAddress("sumsHT_uct_calib_gen_sum", &sumsHT_uct_calib_gen_sum, &b_sumsHT_uct_calib_gen_sum);
+  fChain->SetBranchAddress("sumsMHT_uct_calib_gen_sum", &sumsMHT_uct_calib_gen_sum, &b_sumsMHT_uct_calib_gen_sum);
+  fChain->SetBranchAddress("sumsMHTx_uct_calib_gen_sum", &sumsMHTx_uct_calib_gen_sum, &b_sumsMHTx_uct_calib_gen_sum);
+  fChain->SetBranchAddress("sumsMHTy_uct_calib_gen_sum", &sumsMHTy_uct_calib_gen_sum, &b_sumsMHTy_uct_calib_gen_sum);
+
   fChain->SetBranchAddress("jetPt_gct_uncalib_gen", &jetPt_gct_uncalib_gen, &b_jetPt_gct_uncalib_gen);
   fChain->SetBranchAddress("jetArea_gct_uncalib_gen", &jetArea_gct_uncalib_gen, &b_jetArea_gct_uncalib_gen);
   fChain->SetBranchAddress("jetFirEta_gct_uncalib_gen", &jetFirEta_gct_uncalib_gen, &b_jetFirEta_gct_uncalib_gen);

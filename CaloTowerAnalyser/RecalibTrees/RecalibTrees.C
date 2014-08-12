@@ -60,7 +60,7 @@ void RecalibTrees::Loop()
 
   Long64_t nentries = fChain->GetEntriesFast();
 
-  //nentries = 10000;
+  //nentries = 10;
 
   outFile->cd();
 
@@ -75,6 +75,7 @@ void RecalibTrees::Loop()
     //Get the relevant entry to start work
     GetEntry(jentry); 
 
+
     //Make TLorentzVector jet candidates
     std::map< TString,std::vector<TLorentzVector> > jetObjects;
     std::map< TString,std::vector<TLorentzVector> > calibJetObjects;
@@ -82,11 +83,11 @@ void RecalibTrees::Loop()
 
     //For Gen
     if(!doNGun){
-      for(unsigned i=0; i<jetPts["Gen"]->size(); i++){
+      for(unsigned i=0; i<jetPts["gen"]->size(); i++){
         TLorentzVector jet;
-        jet.SetPtEtaPhiM(jetPts["Gen"]->at(i),jetEtas["Gen"]->at(i),
-            jetPhis["Gen"]->at(i),0.);
-        if(jet.Eta()>100 || jet.Eta()<-100) std::cout << "Gen\n";
+        jet.SetPtEtaPhiM(jetPts["gen"]->at(i),jetEtas["gen"]->at(i),
+            jetPhis["gen"]->at(i),0.);
+        if(jet.Eta()>100 || jet.Eta()<-100) std::cout << "gen\n";
         genJetObjects.push_back(jet);
       }
     }
@@ -94,69 +95,126 @@ void RecalibTrees::Loop()
     for(std::vector<TString>::const_iterator iType=jetTypes.begin();
         iType!=jetTypes.end(); iType++){
 
-      //Add the other jets
-      for(unsigned i=0; i<jetPts[*iType]->size(); i++){
-        if(fabs(jetEtas[*iType]->at(i)) < etaCut){
-          TLorentzVector jet;
-          jet.SetPtEtaPhiM(jetPts[*iType]->at(i),jetEtas[*iType]->at(i),
-              jetPhis[*iType]->at(i),0.);
-          if(jet.Eta()>100 || jet.Eta()<-100) std::cout << "Other\n";
-
-          jetObjects[*iType].push_back(jet);
-        }
-      }
-
-      calibJetObjects[*iType] = calibrateL1Jets(jetObjects[*iType],*iType,10.,9999.);
-
-      //Sort the new calibrated objects
-      std::sort(calibJetObjects[*iType].begin(),calibJetObjects[*iType].end(),sortbypt);
-
-      //Redo the matching!
-      std::vector<int> l1_matched_index_algo1;
-      if(!doNGun){
-        //Make all possible pairs of jets
-        std::vector<pair_info> pairs = make_pairs(genJetObjects, jetObjects[*iType]);
-
-        //Find the index of the gen jet that is matched to L1
-        l1_matched_index_algo1 
-          = analyse_pairs_local(pairs, jetObjects[*iType].size(),0.49);
-      }
-
-      getESums(calibJetObjects[*iType],htCalib[*iType],mhtXCalib[*iType],mhtYCalib[*iType],mhtCalib[*iType]);
-
-      //Write to the tree and fill
-
       jetCalibPts[*iType]->clear();
       jetCalibMatchedPts[*iType]->clear();
       jetCalibEtas[*iType]->clear();
       jetCalibPhis[*iType]->clear();
+      htCalib[*iType]=0.;
+      mhtCalib[*iType]=0.;
+      mhtXCalib[*iType]=0.;
+      mhtYCalib[*iType]=0.;
 
-      for(unsigned j=0; j<calibJetObjects[*iType].size(); j++){
 
-        jetCalibPts[*iType]->push_back(calibJetObjects[*iType][j].Pt());
-        jetCalibEtas[*iType]->push_back(calibJetObjects[*iType][j].Eta());
-        jetCalibPhis[*iType]->push_back(calibJetObjects[*iType][j].Phi());
+      if(*iType=="uct"){
+        for(int j=0; j<jetPts[*iType]->size(); j++){
+          jetCalibPts[*iType]->push_back(jetPts[*iType]->at(j));
+          if(!doNGun) jetCalibMatchedPts[*iType]->push_back(jetMatchedPts[*iType]->at(j));
+          jetCalibPhis[*iType]->push_back(jetPhis[*iType]->at(j));
+          jetCalibEtas[*iType]->push_back(jetEtas[*iType]->at(j));
+        }
+        htCalib[*iType]=ht[*iType];
+        mhtCalib[*iType]=mht[*iType];
+        // mhtXCalib[*iType]=mhtX[*iType];
+        // mhtYCalib[*iType]=mhtY[*iType];
 
-        if(!doNGun){
-          //Fill for the matched
-          if (l1_matched_index_algo1[j]!=-1)
-          {
-            jetCalibMatchedPts[*iType]->push_back(
-                genJetObjects.at(l1_matched_index_algo1.at(j)).Pt());
-          }
-          else
-          {
-            jetCalibMatchedPts[*iType]->push_back(-1.);
+      }else if(*iType=="gct"){
+
+        for(int j=0; j<jetPts[*iType]->size(); j++){
+          jetCalibPts[*iType]->push_back(jetPts[*iType]->at(j));
+          if(!doNGun) jetCalibMatchedPts[*iType]->push_back(jetMatchedPts[*iType]->at(j));
+          jetCalibPhis[*iType]->push_back(jetPhis[*iType]->at(j));
+          jetCalibEtas[*iType]->push_back(jetEtas[*iType]->at(j));
+        }
+        htCalib[*iType]=ht[*iType];
+        mhtCalib[*iType]=mht[*iType];
+        //  mhtXCalib[*iType]=mhtX[*iType];
+        //  mhtYCalib[*iType]=mhtY[*iType];
+
+
+      }else if(*iType=="gen"){
+
+        for(int j=0; j<jetPts[*iType]->size(); j++){
+          jetCalibPts[*iType]->push_back(jetPts[*iType]->at(j));
+          //if(!doNGun) jetCalibMatchedPts[*iType]->push_back(jetMatchedPts[*iType]->at(j));
+          jetCalibPhis[*iType]->push_back(jetPhis[*iType]->at(j));
+          jetCalibEtas[*iType]->push_back(jetEtas[*iType]->at(j));
+        }
+        htCalib[*iType]=ht[*iType];
+        mhtCalib[*iType]=mht[*iType];
+        mhtXCalib[*iType]=mhtX[*iType];
+        mhtYCalib[*iType]=mhtY[*iType];
+
+      }else{
+
+        //std::cout << "Jet Size of tree: " << jetPts[*iType]->size() << std::endl;
+
+        //Add the other jets
+        for(unsigned i=0; i<jetPts[*iType]->size(); i++){
+          if(fabs(jetEtas[*iType]->at(i)) < etaCut){
+            TLorentzVector jet;
+            jet.SetPtEtaPhiM(jetPts[*iType]->at(i),jetEtas[*iType]->at(i),
+                jetPhis[*iType]->at(i),0.);
+            if(jet.Eta()>100 || jet.Eta()<-100) std::cout << "Other\n";
+
+            jetObjects[*iType].push_back(jet);
           }
         }
 
+        calibJetObjects[*iType] = calibrateL1Jets(jetObjects[*iType],*iType,10.2,9999.);
+                
+        //Sort the new calibrated objects
+        std::sort(calibJetObjects[*iType].begin(),calibJetObjects[*iType].end(),sortbypt);
+
+        //Redo the matching!
+        std::vector<int> l1_matched_index_algo1;
+        if(!doNGun){
+          //Make all possible pairs of jets
+          std::vector<pair_info> pairs = make_pairs(genJetObjects, jetObjects[*iType]);
+
+          //Find the index of the gen jet that is matched to L1
+          l1_matched_index_algo1 
+            = analyse_pairs_local(pairs, jetObjects[*iType].size(),0.49);
+        }
+
+        getESums(calibJetObjects[*iType],htCalib[*iType],mhtXCalib[*iType],mhtYCalib[*iType],mhtCalib[*iType]);
+
+        //Write to the tree and fill
+
+        //std::cout << "Jet Size of calib objects: " << calibJetObjects[*iType].size() << std::endl;
+
+        for(unsigned j=0; j<calibJetObjects[*iType].size(); j++){
+
+          jetCalibPts[*iType]->push_back(calibJetObjects[*iType][j].Pt());
+          jetCalibEtas[*iType]->push_back(calibJetObjects[*iType][j].Eta());
+          jetCalibPhis[*iType]->push_back(calibJetObjects[*iType][j].Phi());
+
+          if(!doNGun){
+            //Fill for the matched
+            if (l1_matched_index_algo1[j]!=-1)
+            {
+              jetCalibMatchedPts[*iType]->push_back(
+                  genJetObjects.at(l1_matched_index_algo1.at(j)).Pt());
+            }
+            else
+            {
+              jetCalibMatchedPts[*iType]->push_back(-1.);
+            }
+          }
+
+        }
       }
     }
+
+    //Fill the met etc
+    metCalib=met;
+    etCalib=et;
+    nIntsCalib=nInts;
 
     friendTree->Fill();
 
     if(jentry%500==0) std::cout << "Done: " << jentry << std::endl;
   }
+
 
   friendTree->Write();
 

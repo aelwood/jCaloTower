@@ -31,9 +31,11 @@ class RecalibTrees {
 
     bool doNGun;
     double etaCut;
+
     
     std::vector<TString> jetTypes;
     std::map<TString, std::vector<float>* > jetPts;
+    std::map<TString, std::vector<float>* > jetMatchedPts;
     std::map<TString, std::vector<float>* > jetCalibPts;
     std::map<TString, std::vector<float>* > jetCalibMatchedPts;
     std::map<TString, std::vector<float>* > jetCalibPhis;
@@ -45,10 +47,25 @@ class RecalibTrees {
     std::map<TString, double > mhtCalib;
     std::map<TString, double > mhtYCalib;
     std::map<TString, TBranch* > jetPtBranches;
+    std::map<TString, TBranch* > jetMatchedPtBranches;
     std::map<TString, TBranch* > jetEtaBranches;
     std::map<TString, TBranch* > jetPhiBranches;
+    std::map<TString, double > ht;
+    std::map<TString, double > mhtX;
+    std::map<TString, double > mht;
+    std::map<TString, double > mhtY;
+    std::map<TString, TBranch* > htBranches;
+    std::map<TString, TBranch* > mhtXBranches;
+    std::map<TString, TBranch* > mhtBranches;
+    std::map<TString, TBranch* > mhtYBranches;
 
-    RecalibTrees(bool doingNGun=false, double useEtaCut=3.0);
+    double met,metCalib,et,etCalib;
+    TBranch* metBranch;
+    TBranch* etBranch;
+    TBranch* nIntsBranch;
+    int nInts,nIntsCalib;
+
+    RecalibTrees(TTree* tree=0, bool doingNGun=false, double useEtaCut=3.0);
     virtual ~RecalibTrees();
     virtual Int_t    Cut(Long64_t entry);
     virtual Int_t    GetEntry(Long64_t entry);
@@ -62,91 +79,79 @@ class RecalibTrees {
 #endif
 
 #ifdef RecalibTrees_cxx
-RecalibTrees::RecalibTrees(bool doingNGun, double useEtaCut) //: fChain(0) 
+RecalibTrees::RecalibTrees(TTree* tree, bool doingNGun, double useEtaCut) : fChain(0) 
 {
   doNGun=doingNGun;
 
   etaCut = useEtaCut;
-  
-  TString s1,s2;
-  //TTree* tree;
-  //TTree* fullTree;
 
-  if(doNGun){
-    s1="jetTreeNgun.root";
-    s2="/afs/cern.ch/work/a/aelwood/public/NGUN/140801/ngun_14-08-01.root";
+  if(tree==0){
+    std::cout << "Please input a tree" << std::endl;
   }else{
-    s1="jetTreeTtbar.root";
-    s2="/afs/cern.ch/work/a/aelwood/public/TTBAR/140801/ttbar_14-08-01.root";
-  }
+
+    //Define the jet types
+    jetTypes.push_back("s0_nopus");
+    jetTypes.push_back("s0_donut");
+    jetTypes.push_back("s0_global");
+    jetTypes.push_back("s0_chunky");
+    jetTypes.push_back("s0_tsup1");
+    jetTypes.push_back("s0_tsup2");
+    //jetTypes.push_back("s0_tsup3");
+    jetTypes.push_back("s5_nopus");
+    jetTypes.push_back("s5_donut");
+    jetTypes.push_back("s5_global");
+    jetTypes.push_back("s5_chunky");
+    jetTypes.push_back("s5_tsup1");
+    jetTypes.push_back("s5_tsup2");
+    //jetTypes.push_back("s5_tsup3");
+    jetTypes.push_back("c10_nopus");
+    jetTypes.push_back("c10_donut");
+    jetTypes.push_back("c10_global");
+    jetTypes.push_back("c10_chunky");
+    jetTypes.push_back("c10_tsup1");
+    jetTypes.push_back("c10_tsup2");
+    jetTypes.push_back("gen");
+    jetTypes.push_back("uct");
+    jetTypes.push_back("gct");
 
 
-  TFile *f1 = (TFile*)gROOT->GetListOfFiles()->FindObject(s1);
+    Init(tree);
 
-  if (!f1 || !f1->IsOpen()) {
-    f1 = new TFile(s1);
-  }
+    if(doNGun){
+      outFile = new TFile("calibJetsNGun.root","RECREATE");
+    }else{
+      outFile = new TFile("calibJetsSignal.root","RECREATE");
+    }
 
-  TTree * tree = (TTree *)f1->Get("jetTree");
-  if(!doNGun){
-    tree->AddFriend("demo/L1Tree",s2);
-  }
-  //Define the jet types
-  jetTypes.push_back("s0_nopus");
-  jetTypes.push_back("s0_donut");
-  jetTypes.push_back("s0_global");
-  jetTypes.push_back("s0_chunky");
-  jetTypes.push_back("s0_tsup1");
-  jetTypes.push_back("s0_tsup2");
-  //jetTypes.push_back("s0_tsup3");
-  jetTypes.push_back("s5_nopus");
-  jetTypes.push_back("s5_donut");
-  jetTypes.push_back("s5_global");
-  jetTypes.push_back("s5_chunky");
-  jetTypes.push_back("s5_tsup1");
-  jetTypes.push_back("s5_tsup2");
-  //jetTypes.push_back("s5_tsup3");
-  jetTypes.push_back("c10_nopus");
-  jetTypes.push_back("c10_donut");
-  jetTypes.push_back("c10_global");
-  jetTypes.push_back("c10_chunky");
-  jetTypes.push_back("c10_tsup1");
-  jetTypes.push_back("c10_tsup2");
+    friendTree = new TTree("jetTree","jetTree");
 
+    //Initialise memory for the friend tree
+    for(std::vector<TString>::const_iterator iType=jetTypes.begin();
+        iType!=jetTypes.end(); iType++){
 
-  Init(tree);
+      jetCalibPts[*iType] = new std::vector<float>();
+      jetCalibPhis[*iType] = new std::vector<float>();
+      jetCalibEtas[*iType] = new std::vector<float>();
+      jetCalibMatchedPts[*iType] = new std::vector<float>();
+      //htCalib[*iType] = 0;
+      //mhtXCalib[*iType] = 0;
+      //mhtYCalib[*iType] = 0;
+      //mhtCalib[*iType] = 0;
+      friendTree->Branch("jetPt_calib_"+*iType, "std::vector<float>", &jetCalibPts[*iType] );
+      friendTree->Branch("jetEta_calib_"+*iType, "std::vector<float>", &jetCalibEtas[*iType] );
+      friendTree->Branch("jetPhi_calib_"+*iType, "std::vector<float>", &jetCalibPhis[*iType] );
+      friendTree->Branch("jetMatchedPt_calib_"+*iType, "std::vector<float>", &jetCalibMatchedPts[*iType] );
+      friendTree->Branch("ht_calib_"+*iType, &htCalib[*iType], "ht_calib_"+*iType+"/D");
+      friendTree->Branch("mhtX_calib_"+*iType, &mhtXCalib[*iType], "mhtX_calib_"+*iType+"/D");
+      friendTree->Branch("mht_calib_"+*iType, &mhtCalib[*iType], "mht_calib_"+*iType+"/D");
+      friendTree->Branch("mhtY_calib_"+*iType, &mhtYCalib[*iType], "mhtY_calib_"+*iType+"/D");
 
-  if(doNGun){
-    outFile = new TFile("calibJetsNGun.root","RECREATE");
-  }else{
-    outFile = new TFile("calibJetsTtbar.root","RECREATE");
-  }
-
-  friendTree = new TTree("jetTree","jetTree");
-
-  //Initialise memory for the friend tree
-  for(std::vector<TString>::const_iterator iType=jetTypes.begin();
-      iType!=jetTypes.end(); iType++){
-
-    jetCalibPts[*iType] = new std::vector<float>();
-    jetCalibPhis[*iType] = new std::vector<float>();
-    jetCalibEtas[*iType] = new std::vector<float>();
-    jetCalibMatchedPts[*iType] = new std::vector<float>();
-    htCalib[*iType] = 0;
-    mhtXCalib[*iType] = 0;
-    mhtYCalib[*iType] = 0;
-    mhtCalib[*iType] = 0;
-    friendTree->Branch("jetPt_calib_"+*iType, "std::vector<float>", &jetCalibPts[*iType] );
-    friendTree->Branch("jetEta_calib_"+*iType, "std::vector<float>", &jetCalibEtas[*iType] );
-    friendTree->Branch("jetPhi_calib_"+*iType, "std::vector<float>", &jetCalibPhis[*iType] );
-    friendTree->Branch("jetMatchedPt_calib_"+*iType, "std::vector<float>", &jetCalibMatchedPts[*iType] );
-    friendTree->Branch("ht_calib_"+*iType, &htCalib[*iType], "ht_calib_"+*iType+"/D");
-    friendTree->Branch("mhtX_calib_"+*iType, &mhtXCalib[*iType], "mhtX_calib_"+*iType+"/D");
-    friendTree->Branch("mht_calib_"+*iType, &mhtCalib[*iType], "mht_calib_"+*iType+"/D");
-    friendTree->Branch("mhtY_calib_"+*iType, &mhtYCalib[*iType], "mhtY_calib_"+*iType+"/D");
+    }
+    friendTree->Branch("met_calib", &metCalib, "met_calib/D");
+    friendTree->Branch("et_calib", &etCalib, "et_calib/D");
+    friendTree->Branch("nInts_calib", &nIntsCalib, "nInts_calib/I");
 
   }
-
 }
 
 RecalibTrees::~RecalibTrees()
@@ -193,6 +198,7 @@ void RecalibTrees::Init(TTree *tree)
       iType!=jetTypes.end(); iType++){
 
     jetPts[*iType]=0;
+    jetMatchedPts[*iType]=0;
     jetEtas[*iType]=0;
     jetPhis[*iType]=0;
 
@@ -200,24 +206,28 @@ void RecalibTrees::Init(TTree *tree)
 
   // Set branch addresses and branch pointers
   if (!tree) return;
+  std::cout<<"setting fchain" << std::endl;
   fChain = tree;
   fCurrent = -1;
   fChain->SetMakeClass(1);
 
-  //Get the gen information
-  if(!doNGun){
-    fChain->SetBranchAddress("jetPt_ak4_gen",&jetPts["Gen"],&jetPtBranches["Gen"]);
-    fChain->SetBranchAddress("jetEta_ak4_gen",&jetEtas["Gen"],&jetEtaBranches["Gen"]);
-    fChain->SetBranchAddress("jetPhi_ak4_gen",&jetPhis["Gen"],&jetPhiBranches["Gen"]);
-  }
 
   for(std::vector<TString>::const_iterator iType=jetTypes.begin();
       iType!=jetTypes.end(); iType++){
 
+    //if(doNGun && *iType=="gen") continue;
     fChain->SetBranchAddress("jetPt_"+*iType, &jetPts[*iType], &jetPtBranches[*iType]);
+    fChain->SetBranchAddress("jetMatchedPt_"+*iType, &jetMatchedPts[*iType], &jetMatchedPtBranches[*iType]);
     fChain->SetBranchAddress("jetEta_"+*iType, &jetEtas[*iType], &jetEtaBranches[*iType]);
     fChain->SetBranchAddress("jetPhi_"+*iType, &jetPhis[*iType], &jetPhiBranches[*iType]);
+    fChain->SetBranchAddress("mht_"+*iType, &mht[*iType], &mhtBranches[*iType]);
+    fChain->SetBranchAddress("ht_"+*iType, &ht[*iType], &htBranches[*iType]);
+    fChain->SetBranchAddress("mhtX_"+*iType, &mhtX[*iType], &mhtXBranches[*iType]);
+    fChain->SetBranchAddress("mhtY_"+*iType, &mhtY[*iType], &mhtYBranches[*iType]);
   }
+  fChain->SetBranchAddress("met", &met, &metBranch);
+  fChain->SetBranchAddress("et", &et, &etBranch);
+  fChain->SetBranchAddress("nInts", &nInts, &nIntsBranch);
 
   Notify();
 }

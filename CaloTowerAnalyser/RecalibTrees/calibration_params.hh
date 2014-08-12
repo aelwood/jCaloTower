@@ -160,10 +160,11 @@ std::vector<TLorentzVector> calibrateL1Jets(const std::vector<TLorentzVector>& i
   }
   return outJets;
 }
-
+/*
 std::vector<TLorentzVector> calibrateL1Jets(const std::vector<TLorentzVector>& inJets, TString type, int CALIBMODE){
 
   std::vector<TLorentzVector> outJets;
+  double tmPT,tmETA,tmHOE,tmSOPT;
 
   if(CALIBMODE<1 || CALIBMODE>4){
     std::cout << "Invalid calib bdt mode" << std::endl;
@@ -206,10 +207,24 @@ std::vector<TLorentzVector> calibrateL1Jets(const std::vector<TLorentzVector>& i
   // in the loop, set the variables and get the scale factor
 
 
-  corr = tmvaReader_->EvaluateRegression(0,"BDTG");
-  l1pt = l1pt*corr;
+  for(unsigned i=0; i<inJets.size(); i++){
+
+    tmPT=inJets[i].pt();
+    tmETA=inJets[i].eta();
+
+    tmHOE= hoe ;
+    tmSOPT= sopt ;
+
+    double correction = tmvaReader_->EvaluateRegression(0,"BDTG");
+
+    TLorentzVector jet;
+    jet.SetPtEtaPhiM(correction*inJets[i].Pt(),inJets[i].Eta(),inJets[i].Phi(),0.);
+
+    outJets.push_back(jet);
+  }
 
   return outJets;
 }
+*/
 #endif
 

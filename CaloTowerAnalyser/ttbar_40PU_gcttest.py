@@ -20,8 +20,8 @@ process.source = cms.Source("PoolSource",
     # replace 'myfile.root' with the source file you want to use
     fileNames = cms.untracked.vstring(
 #'root://eoscms.cern.ch//eos/cms/store/user/aelwood/140725_jJets_ttbar_PU40bx50/L1SkimRun_48_1_Wg8.root'
-#'/store/user/aelwood/140801_jJets_ttbar_PU40bx25/L1SkimRun_11_1_UBf.root'
-'/store/user/aelwood/140801_jJets_ngun_PU40bx25/L1SkimRun_18_2_lRf.root'
+'/store/user/aelwood/140801_jJets_ttbar_PU40bx25/L1SkimRun_11_1_UBf.root'
+#'/store/user/aelwood/140801_jJets_ngun_PU40bx25/L1SkimRun_18_2_lRf.root'
 
 #'file://L1SkimRun.root'
     ),

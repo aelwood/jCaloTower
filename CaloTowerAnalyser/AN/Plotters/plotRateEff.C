@@ -37,7 +37,7 @@ void plotRateEff(){
   yName.push_back("Rate");
   xLimitsLow.push_back(0.7); xLimitsHigh.push_back(1.0);
   yLimitsLow.push_back(0.); yLimitsHigh.push_back(30000.);
-/*
+
   histDir.push_back("rate/nvtx_ptCut_0");
   xName.push_back("NInts");
   yName.push_back("Rate");
@@ -49,7 +49,7 @@ void plotRateEff(){
   yName.push_back("Rate");
   xLimitsLow.push_back(0.); xLimitsHigh.push_back(70.0);
   yLimitsLow.push_back(0.); yLimitsHigh.push_back(100000.);
-
+/*
   histDir.push_back("rate/Rate_0");
   xName.push_back("Cut");
   yName.push_back("Rate");
@@ -62,7 +62,6 @@ void plotRateEff(){
   xLimitsLow.push_back(0.); xLimitsHigh.push_back(600.);
   yLimitsLow.push_back(0.); yLimitsHigh.push_back(1000000.);
 */
-
   histDir.push_back("efficiency/nvtx_ptCut_0");
   xName.push_back("NInts");
   yName.push_back("Efficiency");
@@ -126,8 +125,6 @@ void plotRateEff(){
   TFile* f = TFile::Open("../jetPlots_newAreas.root");
   //TFile* f = TFile::Open("../test.root");
 
-  std::cout << "Got here" << std::endl;
-
   int i=0;
   for(auto iHist = histDir.begin(); iHist!=histDir.end();iHist++){
 
@@ -144,8 +141,10 @@ void plotRateEff(){
     TGraphAsymmErrors* tsup2seed = f->Get("calib_s5_tsup2/"+*iHist);
     TGraphAsymmErrors* global = f->Get("calib_s0_global/"+*iHist);
     TGraphAsymmErrors* globalseed = f->Get("calib_s5_global/"+*iHist);
-    TGraphAsymmErrors* uct = f->Get("uct_calib_gen/"+*iHist);
-    TGraphAsymmErrors* gct = f->Get("gct_calib_gen/"+*iHist);
+    TGraphAsymmErrors* uct = f->Get("calib_uct/"+*iHist);
+    TGraphAsymmErrors* gct = f->Get("calib_gct/"+*iHist);
+    TGraphAsymmErrors* met;
+    if(*iHist=="rate_eff/rate_efficiency_mht") met=f->Get("met/rate_eff/rate_efficiency_mht");
 
     TMultiGraph * hs = new TMultiGraph();
 
@@ -155,10 +154,12 @@ void plotRateEff(){
 
     c->cd();
 
-    std::cout << " Got here " << std::endl;
+    if(*iHist=="rate_eff/rate_efficiency_mht"){
+      met->SetLineColor(13);
+      met->SetMarkerColor(13);
+    }
 
     nopus->SetLineColor(1);
-    std::cout << " Got here " << std::endl;
     nopus->SetMarkerColor(1);
     nopus->SetLineStyle(2);
     nopusseed->SetLineColor(1);
@@ -195,7 +196,7 @@ void plotRateEff(){
 
     uct->SetLineColor(8);
     uct->SetMarkerColor(8);
-    
+
     gct->SetLineColor(8);
     gct->SetMarkerColor(8);
     gct->SetLineStyle(2);
@@ -211,6 +212,8 @@ void plotRateEff(){
     hs->Add(tsup2seed,"lp");
     hs->Add(uct,"lp");
     hs->Add(gct,"lp");
+
+    if(*iHist=="rate_eff/rate_efficiency_mht") hs->Add(met,"lp");
 
     hs->Draw("a");
     hs->GetXaxis()->SetTitle(xName[i]);
@@ -230,6 +233,7 @@ void plotRateEff(){
     leg->AddEntry(tsup2seed,"TSup 2 (Seed 5)","l");
     leg->AddEntry(gct,"GCT","l");
     leg->AddEntry(uct,"UCT","l");
+    if(*iHist=="rate_eff/rate_efficiency_mht") leg->AddEntry(met,"MET","l");
 
     leg->Draw("L");
 
