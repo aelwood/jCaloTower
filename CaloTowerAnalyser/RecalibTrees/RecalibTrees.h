@@ -90,6 +90,7 @@ RecalibTrees::RecalibTrees(TTree* tree, bool doingNGun, double useEtaCut) : fCha
   }else{
 
     //Define the jet types
+
     jetTypes.push_back("s0_nopus");
     jetTypes.push_back("s0_donut");
     jetTypes.push_back("s0_global");
@@ -111,9 +112,35 @@ RecalibTrees::RecalibTrees(TTree* tree, bool doingNGun, double useEtaCut) : fCha
     jetTypes.push_back("c10_tsup1");
     jetTypes.push_back("c10_tsup2");
     jetTypes.push_back("gen");
-    jetTypes.push_back("uct");
-    jetTypes.push_back("gct");
+    //jetTypes.push_back("uct");
+    //jetTypes.push_back("gct");
 
+    /*
+       jetTypes.push_back("gen");
+       jetTypes.push_back("uct");
+       jetTypes.push_back("gct");
+       jetTypes.push_back("s0_nopus");
+       jetTypes.push_back("s10_nopus");
+       jetTypes.push_back("s15_nopus");
+       jetTypes.push_back("s20_nopus");
+       jetTypes.push_back("c20_nopus");
+       jetTypes.push_back("c25_nopus");
+       jetTypes.push_back("c30_nopus");
+       jetTypes.push_back("s0_global");
+       jetTypes.push_back("s10_global");
+       jetTypes.push_back("s15_global");
+       jetTypes.push_back("s20_global");
+       jetTypes.push_back("c20_global");
+       jetTypes.push_back("c25_global");
+       jetTypes.push_back("c30_global");
+       jetTypes.push_back("s0_chunky");
+       jetTypes.push_back("s10_chunky");
+       jetTypes.push_back("s15_chunky");
+       jetTypes.push_back("s20_chunky");
+       jetTypes.push_back("c20_chunky");
+       jetTypes.push_back("c25_chunky");
+       jetTypes.push_back("c30_chunky");
+       */
 
     Init(tree);
 

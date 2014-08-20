@@ -38,6 +38,7 @@ namespace{
   TString l1c10chunky="c10_chunky";
   TString l1c10tsup1="c10_tsup1";
   TString l1c10tsup2="c10_tsup2";
+
 }
 
 std::vector<TLorentzVector> calibrateL1Jets(const std::vector<TLorentzVector>& inJets, TString type, double ptMin, double ptMax){
@@ -68,6 +69,9 @@ std::vector<TLorentzVector> calibrateL1Jets(const std::vector<TLorentzVector>& i
     else if(type==l1c10tsup1) lut.push_back(lutsc10GeV::tsup1Lut[i]);
     else if(type==l1c10tsup2) lut.push_back(lutsc10GeV::tsup2Lut[i]);
     else if(type==l1c10global) lut.push_back(lutsc10GeV::globalLut[i]);
+    else if(type.Contains("global")) lut.push_back(lutss0GeV::globalLut[i]);
+    else if(type.Contains("nopus")) lut.push_back(lutss0GeV::nopusLut[i]);
+    else if(type.Contains("chunky")) lut.push_back(lutss0GeV::chunkyLut[i]);
 
     else std::cout << "Invalid type to get lut" << std::endl;
 

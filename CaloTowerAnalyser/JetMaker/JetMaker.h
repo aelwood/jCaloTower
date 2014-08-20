@@ -497,9 +497,9 @@ JetMaker::JetMaker(TTree *tree, bool doingNGun) : fChain(0)
 
     //Initialise the memory for the new tree
     if(doingNGun){
-      outFile = new TFile("jetTreeNgun.root","RECREATE");
+      outFile = new TFile("jetTreeNgunBigSeeds.root","RECREATE");
     }else{
-      outFile = new TFile("jetTreeSignal.root","RECREATE");
+      outFile = new TFile("jetTreeSignalBigSeeds.root","RECREATE");
     }
 
     jetTree = new TTree("jetTree","jetTree");
@@ -517,9 +517,33 @@ JetMaker::JetMaker(TTree *tree, bool doingNGun) : fChain(0)
 
     //Declare the types of PUS jets to be made
     jetTypes.push_back("s0_nopus");
+   // jetTypes.push_back("s8_nopus");
+//    jetTypes.push_back("s10_nopus");
+//    jetTypes.push_back("s15_nopus");
+//    jetTypes.push_back("s20_nopus");
+//   // jetTypes.push_back("c15_nopus");
+//    jetTypes.push_back("c20_nopus");
+//    jetTypes.push_back("c25_nopus");
+//    jetTypes.push_back("c30_nopus");
     jetTypes.push_back("s0_donut");
     jetTypes.push_back("s0_global");
+//   // jetTypes.push_back("s8_global");
+//    jetTypes.push_back("s10_global");
+//    jetTypes.push_back("s15_global");
+//    jetTypes.push_back("s20_global");
+//   // jetTypes.push_back("c15_global");
+//    jetTypes.push_back("c20_global");
+//    jetTypes.push_back("c25_global");
+//    jetTypes.push_back("c30_global");
     jetTypes.push_back("s0_chunky");
+//   // jetTypes.push_back("s8_chunky");
+//    jetTypes.push_back("s10_chunky");
+//    jetTypes.push_back("s15_chunky");
+//    jetTypes.push_back("s20_chunky");
+//   // jetTypes.push_back("c15_chunky");
+//    jetTypes.push_back("c20_chunky");
+//    jetTypes.push_back("c25_chunky");
+//    jetTypes.push_back("c30_chunky");
     jetTypes.push_back("s0_tsup1");
     jetTypes.push_back("s0_tsup2");
     jetTypes.push_back("s0_tsup3");
@@ -539,8 +563,8 @@ JetMaker::JetMaker(TTree *tree, bool doingNGun) : fChain(0)
     jetTypes.push_back("c10_tsup3");
 
     jetTypes.push_back("gen");
-    jetTypes.push_back("uct");
-    jetTypes.push_back("gct");
+    //jetTypes.push_back("uct");
+    //jetTypes.push_back("gct");
 
     //Assign the memory for all the different types of jets
     for(std::vector<TString>::const_iterator it=jetTypes.begin(); 

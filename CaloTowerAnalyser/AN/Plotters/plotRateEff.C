@@ -20,6 +20,12 @@ void plotRateEff(){
   xLimitsLow.push_back(0.); xLimitsHigh.push_back(0.8);
   yLimitsLow.push_back(0.); yLimitsHigh.push_back(30000.);
 
+  histDir.push_back("rate_eff/rate_efficiency_jet1"); 
+  xName.push_back("Efficiency");
+  yName.push_back("Rate");
+  xLimitsLow.push_back(0.); xLimitsHigh.push_back(0.8);
+  yLimitsLow.push_back(0.); yLimitsHigh.push_back(30000.);
+
   histDir.push_back("rate_eff/rate_efficiency_jet3"); 
   xName.push_back("Efficiency");
   yName.push_back("Rate");
@@ -113,16 +119,17 @@ void plotRateEff(){
   histDir.push_back("sums/ht_200.");
   xName.push_back("Gen pT");
   yName.push_back("Efficiency");
-  xLimitsLow.push_back(0.); xLimitsHigh.push_back(400.0);
+  xLimitsLow.push_back(0.); xLimitsHigh.push_back(700.0);
   yLimitsLow.push_back(0.); yLimitsHigh.push_back(1.);
 
   histDir.push_back("sums/mht_200.");
   xName.push_back("Gen pT");
   yName.push_back("Efficiency");
-  xLimitsLow.push_back(0.); xLimitsHigh.push_back(400.0);
+  xLimitsLow.push_back(0.); xLimitsHigh.push_back(700.0);
   yLimitsLow.push_back(0.); yLimitsHigh.push_back(1.);
 
-  TFile* f = TFile::Open("../jetPlots_newAreas.root");
+
+  TFile* f = TFile::Open("../jetPlots.root");
   //TFile* f = TFile::Open("../test.root");
 
   int i=0;

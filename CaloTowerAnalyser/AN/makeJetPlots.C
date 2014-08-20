@@ -18,7 +18,7 @@ namespace{
 
 void makeJetPlots()
 {
-  TFile * fout = new TFile("jetPlots_newAreas.root","recreate");
+  TFile * fout = new TFile("jetPlots.root","recreate");
 
   TFile * finNeutrino = new TFile("calibJetsNGun.root");
   TTree * treeNeut = (TTree *)finNeutrino->Get("jetTree");
@@ -35,29 +35,61 @@ void makeJetPlots()
   //treeTtbar->AddFriend("calibJetsTtbar.root");
 
   std::vector<TString> jetTypes;
+  
   //jetTypes.push_back("s0_nopus");
   //jetTypes.push_back("s5_chunky");
   //jetTypes.push_back("s5_global");
-//  jetTypes.push_back("calib_s0_nopus");
-//  jetTypes.push_back("calib_s0_donut");
-//  jetTypes.push_back("calib_s0_global");
-//  //jetTypes.push_back("s0_tsup1");
-//  //jetTypes.push_back("s0_tsup2");
-//  //jetTypes.push_back("s0_tsup3");
-//  jetTypes.push_back("calib_s5_nopus");
-//  jetTypes.push_back("calib_s5_donut");
+  jetTypes.push_back("calib_s0_nopus");
+  jetTypes.push_back("calib_s0_donut");
+  jetTypes.push_back("calib_s0_global");
+  //jetTypes.push_back("s0_tsup1");
+  //jetTypes.push_back("s0_tsup2");
+  //jetTypes.push_back("s0_tsup3");
+  jetTypes.push_back("calib_s5_nopus");
+  jetTypes.push_back("calib_s5_donut");
   jetTypes.push_back("calib_s5_global");
-//  jetTypes.push_back("calib_s5_chunky");
-//  jetTypes.push_back("calib_s5_tsup1");
-//  jetTypes.push_back("calib_s5_tsup2");
-//  jetTypes.push_back("calib_c10_nopus");
-//  jetTypes.push_back("calib_c10_donut");
-//  //jetTypes.push_back("s5_tsup3");
-//  jetTypes.push_back("calib_gen");
-//  jetTypes.push_back("met");
-//  jetTypes.push_back("calib_gct");
-  jetTypes.push_back("calib_uct");
+  jetTypes.push_back("calib_s5_chunky");
+  jetTypes.push_back("calib_s5_tsup1");
+  jetTypes.push_back("calib_s5_tsup2");
+  jetTypes.push_back("calib_c10_nopus");
+  jetTypes.push_back("calib_c10_donut");
+  //jetTypes.push_back("s5_tsup3");
+  jetTypes.push_back("calib_gen");
+  
 
+  jetTypes.push_back("met");
+  jetTypes.push_back("calib_gct");
+  jetTypes.push_back("calib_uct");
+/*
+  jetTypes.push_back("calib_s0_nopus");
+  // jetTypes.push_back("s8_nopus");
+  jetTypes.push_back("calib_s10_nopus");
+  jetTypes.push_back("calib_s15_nopus");
+  jetTypes.push_back("calib_s20_nopus");
+  // jetTypes.push_back("c15_nopus");
+  jetTypes.push_back("calib_c20_nopus");
+  jetTypes.push_back("calib_c25_nopus");
+  jetTypes.push_back("calib_c30_nopus");
+  //jetTypes.push_back("s0_donut");
+  jetTypes.push_back("calib_s0_global");
+  // jetTypes.push_back("s8_global");
+  jetTypes.push_back("calib_s10_global");
+  jetTypes.push_back("calib_s15_global");
+  jetTypes.push_back("calib_s20_global");
+  // jetTypes.push_back("c15_global");
+  jetTypes.push_back("calib_c20_global");
+  jetTypes.push_back("calib_c25_global");
+  jetTypes.push_back("calib_c30_global");
+  jetTypes.push_back("calib_s0_chunky");
+  // jetTypes.push_back("s8_chunky");
+  jetTypes.push_back("calib_s10_chunky");
+  jetTypes.push_back("calib_s15_chunky");
+  jetTypes.push_back("calib_s20_chunky");
+  // jetTypes.push_back("c15_chunky");
+  jetTypes.push_back("calib_c20_chunky");
+  jetTypes.push_back("calib_c25_chunky");
+  jetTypes.push_back("calib_c30_chunky");
+*/
   std::vector<TString> jetnum;
   jetnum.push_back("0");
   jetnum.push_back("1");
@@ -121,6 +153,8 @@ void makeJetPlots()
       makeSumsRate(treeNeut, sumsRateDir, *iType, htRate, mhtRate);
       makeSumsRateEff(rateEffDir, htRate, htEff, mhtRate, mhtEff);
 
+      makeMatchingEff(treeTtbar, effDir,*iType);
+
       for(std::vector<TString>::const_iterator iNum=jetnum.begin();
           iNum!=jetnum.end(); iNum++){
 
@@ -149,6 +183,8 @@ void makeJetPlots()
       makeSumsRate(treeNeut, sumsRateDir, *iType, htRate, mhtRate);
       makeSumsRateEff(rateEffDir, htRate, htEff, mhtRate, mhtEff);
 
+      makeMatchingEff(treeTtbar, effDir,*iType);
+
       for(std::vector<TString>::const_iterator iNum=jetnum.begin();
           iNum!=jetnum.end(); iNum++){
 
@@ -173,8 +209,8 @@ void makeRatesNvtx(TTree* tree, TDirectory* dir, TString jetType, TString jetNum
 
   dir->cd();
   int cut;
-  if(jetNum=="0") cut= 100;
-  else if(jetNum=="3") cut= 30;
+  if(jetNum=="0") cut= 150;
+  else if(jetNum=="3") cut= 50;
   TString bins2 = "(20,0,100,1000,0,1000)";
   TString bins = "(20,0,100)";
   double xpoints[50];
@@ -184,7 +220,7 @@ void makeRatesNvtx(TTree* tree, TDirectory* dir, TString jetType, TString jetNum
   //tree->Draw("jetPt_calib_s0_nopus[0]:nInts_calib>>overall"+bins2,"","colz");
   tree->Draw("nInts_calib>>overall"+bins,"","");
   TH1F *overall = (TH1F*)gDirectory->Get("overall");
-  
+
 
   tree->Draw("jetPt_"+jetType+"["+jetNum+"]:nInts_calib>>"+jetType+"_"+jetNum+bins2,"","colz");
   TH2F *fullL1NVTX = (TH2F*)gPad->GetPrimitive(jetType+"_"+jetNum);
@@ -198,13 +234,14 @@ void makeRatesNvtx(TTree* tree, TDirectory* dir, TString jetType, TString jetNum
     //TH1D * dummyoverall = overall->ProjectionY("overall"+jetType+jetNum,nvtx,nvtx+1);
     //int overallNorm=dummyoverall->GetEntries();
     int overallNorm=overall->GetBinContent(nvtx);
+    //std::cout<<overallNorm<<std::endl;
     //std::cout << dummyplot->GetEntries() <<" "<<dummyoverall->GetEntries() << std::endl;
-    if(dummyplot->GetEntries() != 0){
+    if(dummyplot->GetEntries() != 0 && overallNorm!=0){
       TH1D * cumuplot=makeEffNvtxCumu(dummyplot,overallNorm);
       cumuplot->SetTitle(buffer);
       //cumuplot->Write();
-      ypoints[i]=ZB_XSECTION*cumuplot->GetBinContent(cumuplot->FindBin(cut));
-      ypointserror[i]=ZB_XSECTION*cumuplot->GetBinError(cumuplot->FindBin(cut));
+      ypoints[i]=cumuplot->GetBinContent(cumuplot->FindBin(cut));
+      ypointserror[i]=cumuplot->GetBinError(cumuplot->FindBin(cut));
       //std::cout << ypoints[i]<< std::endl;
     }
     else
@@ -226,7 +263,7 @@ void makeRatesNvtx(TTree* tree, TDirectory* dir, TString jetType, TString jetNum
   rate_nvtx_bin_graph->SetName("nvtx_ptCut_"+jetNum);
   rate_nvtx_bin_graph->SetMarkerStyle(5);
   //  rate_nvtx_bin_graph->SetLineStyle(0);
-  rate_nvtx_bin_graph->GetYaxis()->SetRangeUser(0,1);
+  //rate_nvtx_bin_graph->GetYaxis()->SetRangeUser(0,);
   rate_nvtx_bin_graph->Write();
 
 }
@@ -237,14 +274,20 @@ void makeEfficienciesNvtx(TTree* tree, TDirectory* dir, TString jetType, TString
   TString bins2 = "(20,0,100,1000,0,1000)";
   TString bins = "(20,0,100)";
   int cut;
-  if(jetNum=="0") cut= 150;
-  else if(jetNum=="3") cut= 50;
+  TCut genptcut;
+  if(jetNum=="0"){ 
+    cut= 150;
+    genptcut = "jetPt_calib_gen["+jetNum+"]>150";
+  }
+  else if(jetNum=="3"){
+    cut= 50;
+    genptcut = "jetPt_calib_gen["+jetNum+"]>50";
+  }
   else cut=50;
   double xpoints[50];
   double ypoints[50];
   double ypointserror[50];
 
-  TCut genptcut = "jetPt_calib_gen["+jetNum+"]>25";
   //tree->Draw("jetPt_calib_gen["+jetNum+"]:nInts_calib>>overall_"+jetNum+bins2,genptcut,"colz");
   //TH2D *overall = (TH2D*)gDirectory->Get("overall_"+jetNum);
   tree->Draw("nInts_calib>>overall"+bins,"","");
@@ -267,7 +310,7 @@ void makeEfficienciesNvtx(TTree* tree, TDirectory* dir, TString jetType, TString
     double overallNorm = overall->GetBinContent(nvtx);
     //std::cout << dummyplot->GetEntries() << "  " << dummyoverall->GetEntries() << std::endl;
     //dummyplot->Write();
-    if(dummyplot->GetEntries() != 0){
+    if(dummyplot->GetEntries() != 0 && overallNorm!=0){
       TH1D * cumuplot=makeEffNvtxCumu(dummyplot,overallNorm);
       cumuplot->SetTitle(buffer);
       //cumuplot->Write();
@@ -374,6 +417,25 @@ void makeSumsTurnon(TTree* tree, TDirectory* dir, TString jetType,
 
 }
 
+void makeMatchingEff(TTree* tree, TDirectory* dir, TString jetType){
+
+  dir->cd();
+
+
+  tree->Draw("jetPt_"+jetType+">>tmp(100,0.,500.)");
+  TH1F *denom = (TH1F*)gDirectory->Get("tmp");
+  denom->Sumw2();
+  tree->Draw("jetPt_"+jetType+">>tmp2(100,0.,500.)","jetMatchedPt_"+jetType+">0.","");
+  TH1F *num = (TH1F*)gDirectory->Get("tmp2");
+  num->Sumw2();
+
+  TGraphAsymmErrors * result=(effDiv(num,denom));
+  result->SetName("MatchingEff");
+  result->Write();
+
+
+}
+
 void makeRateEff(TDirectory* dir, TH1F* rate, TH1F* efficiency, TString jetNum){
 
   dir->cd();
@@ -465,7 +527,9 @@ TH1F* makeEfficiency(TTree *tree, TDirectory* dir, TString jetType, TString jetN
 
   dir->cd();
   if(jetNum=="0"){
-    TCut genptcut = "jetPt_calib_gen["+jetNum+"]>200";
+    TCut genptcut = "jetPt_calib_gen["+jetNum+"]>150";
+  }else if(jetNum=="1"){
+    TCut genptcut = "jetPt_calib_gen["+jetNum+"]>110";
   }else{
     TCut genptcut = "jetPt_calib_gen["+jetNum+"]>50";
   }
@@ -582,24 +646,24 @@ void makeSumsRate(TTree *tree, TDirectory* dir, TString jetType, TH1F* htRate, T
   *mhtRate = *cumuplot;
 }
 /*
-TH1F * makeEfficiencyCumu(TH1F * input, double overallNorm){
+   TH1F * makeEfficiencyCumu(TH1F * input, double overallNorm){
 
-  TH1F * output = new TH1F(*input);
-  //output=input;
-  int norm = input->GetEntries();
-  //output->SetBinContent(0,1.);
-  int nXbins = input->GetNbinsX();
-  int nYbins = input->GetNbinsY();
-  int dummy = input->GetBinContent(nXbins+1);
-  for (int xbins = 0; xbins <= nXbins; xbins++)
-  {
-    dummy += input->GetBinContent(nXbins-xbins);
-    output->SetBinContent((nXbins-xbins),((double)dummy)/overallNorm);
-  }
+   TH1F * output = new TH1F(*input);
+//output=input;
+int norm = input->GetEntries();
+//output->SetBinContent(0,1.);
+int nXbins = input->GetNbinsX();
+int nYbins = input->GetNbinsY();
+int dummy = input->GetBinContent(nXbins+1);
+for (int xbins = 0; xbins <= nXbins; xbins++)
+{
+dummy += input->GetBinContent(nXbins-xbins);
+output->SetBinContent((nXbins-xbins),((double)dummy)/overallNorm);
+}
 
-  return output;
-  }
-  */
+return output;
+}
+*/
 
 TH1F * makeEfficiencyCumu(TH1F * input, double norm){
 

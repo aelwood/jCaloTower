@@ -35,7 +35,7 @@ void JetMaker::Loop()
 
   Long64_t nentries = fChain->GetEntries();
 
-  //nentries=2900000;
+  nentries=2000000;
 
   outFile->cd();
 
@@ -156,7 +156,6 @@ void JetMaker::Loop()
             jetPhi_L1_for_Nick->at(i),0.);
         jetObjects["s0_tsup3"].push_back(tsup3Jet);
       }
-
       //Same with seed 5
       if(jetRingSumsEnergy_0_L1_for_Nick->at(i)>5){
         jetObjects["s5_nopus"].push_back(jet);
@@ -178,6 +177,59 @@ void JetMaker::Loop()
         if(tsup2Pt>0.) jetObjects["c10_tsup2"].push_back(tsup2Jet);
         if(tsup3Pt>0.) jetObjects["c10_tsup3"].push_back(tsup3Jet);
       }
+
+      //With different seeds
+      /*
+      if(jetRingSumsEnergy_0_L1_for_Nick->at(i)>8){
+        jetObjects["s8_nopus"].push_back(jet);
+        if(globalPt>0.) jetObjects["s8_global"].push_back(globalJet);
+        if(chunkyPt>0.) jetObjects["s8_chunky"].push_back(chunkyJet);
+      }
+      if(jetRingSumsEnergy_0_L1_for_Nick->at(i)>10){
+        jetObjects["s10_nopus"].push_back(jet);
+        if(globalPt>0.) jetObjects["s10_global"].push_back(globalJet);
+        if(chunkyPt>0.) jetObjects["s10_chunky"].push_back(chunkyJet);
+      }
+
+      if(jetRingSumsEnergy_0_L1_for_Nick->at(i)>15){
+        jetObjects["s15_nopus"].push_back(jet);
+        if(globalPt>0.) jetObjects["s15_global"].push_back(globalJet);
+        if(chunkyPt>0.) jetObjects["s15_chunky"].push_back(chunkyJet);
+      }
+
+      if(jetRingSumsEnergy_0_L1_for_Nick->at(i)>20){
+        jetObjects["s20_nopus"].push_back(jet);
+        if(globalPt>0.) jetObjects["s20_global"].push_back(globalJet);
+        if(chunkyPt>0.) jetObjects["s20_chunky"].push_back(chunkyJet);
+      }
+*/
+/*
+      //With different chunky seeds
+      if((jetRingSumsEnergy_0_L1_for_Nick->at(i)+jetRingSumsEnergy_1_L1_for_Nick->at(i))>15){
+        jetObjects["c15_nopus"].push_back(jet);
+        if(globalPt>0.) jetObjects["c15_global"].push_back(globalJet);
+        if(chunkyPt>0.) jetObjects["c15_chunky"].push_back(chunkyJet);
+      }
+      if((jetRingSumsEnergy_0_L1_for_Nick->at(i)+jetRingSumsEnergy_1_L1_for_Nick->at(i))>20){
+        jetObjects["c20_nopus"].push_back(jet);
+        if(globalPt>0.) jetObjects["c20_global"].push_back(globalJet);
+        if(chunkyPt>0.) jetObjects["c20_chunky"].push_back(chunkyJet);
+      }
+
+      if((jetRingSumsEnergy_0_L1_for_Nick->at(i)+jetRingSumsEnergy_1_L1_for_Nick->at(i))>25){
+        jetObjects["c25_nopus"].push_back(jet);
+        if(globalPt>0.) jetObjects["c25_global"].push_back(globalJet);
+        if(chunkyPt>0.) jetObjects["c25_chunky"].push_back(chunkyJet);
+      }
+
+      if((jetRingSumsEnergy_0_L1_for_Nick->at(i)+jetRingSumsEnergy_1_L1_for_Nick->at(i))>30){
+        jetObjects["c30_nopus"].push_back(jet);
+        if(globalPt>0.) jetObjects["c30_global"].push_back(globalJet);
+        if(chunkyPt>0.) jetObjects["c30_chunky"].push_back(chunkyJet);
+      }
+*/
+
+
     }
 
     //Fill the tree variables from the jetObjects
